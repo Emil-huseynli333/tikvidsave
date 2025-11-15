@@ -88,6 +88,3 @@ def download_tiktok():
 
     
 
-if __name__ == '__main__':
-    # Debug rejimində işə salın
-    app.run(host='0.0.0.0', port=5000, debug=True)
