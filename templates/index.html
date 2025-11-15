@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok MP4 Yükləyici</title>
+    <style>
+        /* CSS Kodları */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #1a1a2e; margin: 0; color: #fff; }
+        .container { background-color: #2a2a44; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); max-width: 500px; width: 90%; text-align: center; }
+        h1 { color: #ff5a5f; margin-bottom: 30px; border-bottom: 2px solid #3c3c60; padding-bottom: 15px; }
+        input[type="text"] { width: 100%; padding: 15px; margin-bottom: 25px; border: 2px solid #555588; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #3c3c60; color: #fff; transition: border-color 0.3s; }
+        input[type="text"]:focus { border-color: #ff5a5f; outline: none; }
+        button { background-color: #ff5a5f; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background-color 0.3s, transform 0.1s; width: 100%; }
+        button:hover { background-color: #e04e52; }
+        button:active { transform: scale(0.98); }
+        #status { margin-top: 25px; font-weight: bold; padding: 10px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 TikTok MP4 Yükləyici</h1>
+        <input type="text" id="tiktok-link" placeholder="TikTok video linkini bura yapışdırın" required>
+        <button id="download-button">Yüklə və MP4 əldə et</button>
+        <p id="status" style="color: #fff;"></p>
+    </div>
+
+    <script>
+        // JavaScript Kodları
+        document.getElementById('download-button').addEventListener('click', async () => {
+            const link = document.getElementById('tiktok-link').value.trim();
+            const statusElement = document.getElementById('status');
+
+            if (!link) {
+                statusElement.textContent = "⚠️ Zəhmət olmasa bir link daxil edin.";
+                statusElement.style.backgroundColor = "#880000"; 
+                return;
+            }
+
+            statusElement.textContent = "⏳ Yükləmə hazırlanır, zəhmət olmasa gözləyin...";
+            statusElement.style.backgroundColor = "#cc8800"; 
+            
+            // DÜZGÜN YERLİ BACKEND ÜNVANI
+            // Backend bu hostda işlədiyi üçün, ünvan tam olaraq budur:
+            const backendUrl = 'http://127.0.0.1:5000/yukle'; 
+            
+            try {
+                // Backend-ə POST sorğusu göndərilməsi
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: link })
+                });
+
+                if (response.ok) {
+                    statusElement.textContent = "✅ Uğurla hazırlandı! Yüklənmə başladı...";
+                    statusElement.style.backgroundColor = "#008800"; 
+                    
+                    // Faylın brauzer tərəfindən yüklənməsini təmin edir
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = 'tiktok_video.mp4';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+
+                    statusElement.textContent = "🎉 Yüklənmə tamamlandı. Başqa link daxil edin.";
+                    
+                } else {
+                    // Backend-dən gələn xəta mesajını göstərin
+                    // Xəta JSON formatında gəldiyini fərz edirik
+                    const errorData = await response.json();
+                    statusElement.textContent = `❌ Xəta baş verdi: ${errorData.message || 'Naməlum xəta.'}`;
+                    statusElement.style.backgroundColor = "#880000"; 
+                }
+            } catch (error) {
+                // Bu, "Failed to fetch" xətasıdır. Yəni server tapılmır.
+                statusElement.textContent = "⚠️ Serverlə əlaqə qurularkən xəta. Backend (app.py) işləyirmi? Xəta: " + error.message;
+                statusElement.style.backgroundColor = "#880000";
+            }
+        });
+    </script>
+</body>
+</html>
