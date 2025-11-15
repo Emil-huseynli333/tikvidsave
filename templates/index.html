@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html lang="az">
-<head><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9598818157115502"
-crossorigin="anonymous"></script>
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9598818157115502"
+     crossorigin="anonymous"></script>
+     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TikTok MP4 Yükləyici</title>
     <style>
         /* CSS Kodları */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #1a1a2e; margin: 0; color: #fff; }
-        .container { background-color: #2a2a44; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); max-width: 500px; width: 90%; text-align: center; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-color: #1a1a2e; 
+            margin: 0; 
+            padding-top: 50px; 
+            color: #fff; 
+        }
+        .container { 
+            background-color: #2a2a44; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); 
+            max-width: 500px; 
+            width: 90%; 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
         h1 { color: #ff5a5f; margin-bottom: 30px; border-bottom: 2px solid #3c3c60; padding-bottom: 15px; }
         input[type="text"] { width: 100%; padding: 15px; margin-bottom: 25px; border: 2px solid #555588; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #3c3c60; color: #fff; transition: border-color 0.3s; }
         input[type="text"]:focus { border-color: #ff5a5f; outline: none; }
@@ -19,6 +41,7 @@ crossorigin="anonymous"></script>
     </style>
 </head>
 <body>
+    
     <div class="container">
         <h1>🎬 TikTok MP4 Yükləyici</h1>
         <input type="text" id="tiktok-link" placeholder="TikTok video linkini bura yapışdırın" required>
@@ -26,8 +49,19 @@ crossorigin="anonymous"></script>
         <p id="status" style="color: #fff;"></p>
     </div>
 
+    <div style="margin-top: 20px; text-align: center; max-width: 500px; width: 90%;">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-9598818157115502"
+             data-ad-slot="3218889420"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
     <script>
-        // JavaScript Kodları
         document.getElementById('download-button').addEventListener('click', async () => {
             const link = document.getElementById('tiktok-link').value.trim();
             const statusElement = document.getElementById('status');
@@ -41,12 +75,10 @@ crossorigin="anonymous"></script>
             statusElement.textContent = "⏳ Yükləmə hazırlanır, zəhmət olmasa gözləyin...";
             statusElement.style.backgroundColor = "#cc8800"; 
             
-            // DÜZGÜN YERLİ BACKEND ÜNVANI
-// Tətbiqi Render/Railway kimi hostingdə işə salmaq üçün nisbi (relative) ünvan istifadə edin
-const backendUrl = '/yukle';
+            // Düzəldilmiş ünvan (Render/Railway üçün vacib)
+            const backendUrl = '/yukle';
             
             try {
-                // Backend-ə POST sorğusu göndərilməsi
                 const response = await fetch(backendUrl, {
                     method: 'POST',
                     headers: {
@@ -59,7 +91,6 @@ const backendUrl = '/yukle';
                     statusElement.textContent = "✅ Uğurla hazırlandı! Yüklənmə başladı...";
                     statusElement.style.backgroundColor = "#008800"; 
                     
-                    // Faylın brauzer tərəfindən yüklənməsini təmin edir
                     const blob = await response.blob();
                     const downloadUrl = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -73,34 +104,15 @@ const backendUrl = '/yukle';
                     statusElement.textContent = "🎉 Yüklənmə tamamlandı. Başqa link daxil edin.";
                     
                 } else {
-                    // Backend-dən gələn xəta mesajını göstərin
-                    // Xəta JSON formatında gəldiyini fərz edirik
                     const errorData = await response.json();
                     statusElement.textContent = `❌ Xəta baş verdi: ${errorData.message || 'Naməlum xəta.'}`;
                     statusElement.style.backgroundColor = "#880000"; 
                 }
             } catch (error) {
-                // Bu, "Failed to fetch" xətasıdır. Yəni server tapılmır.
                 statusElement.textContent = "⚠️ Serverlə əlaqə qurularkən xəta. Backend (app.py) işləyirmi? Xəta: " + error.message;
                 statusElement.style.backgroundColor = "#880000";
             }
         });
     </script>
-</div>
-
-        <div style="margin-top: 50px; text-align: center; max-width: 500px; width: 90%; margin-left: auto; margin-right: auto;">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-9598818157115502"
-                 data-ad-slot="1234567890" data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-        
-        <script>
-        </script>
-    </body>
-</html></body>
+</body>
 </html>
