@@ -7,6 +7,8 @@ import logging
 # Loglama üçün tənzimləmə
 logging.basicConfig(level=logging.INFO)
 
+# Flask Tətbiqinin İcrası
+# 'templates' qovluğunu şablonlar üçün təyin edir
 app = Flask(__name__, template_folder='templates')
 
 # Yükləmələrin saxlanılacağı qovluğu təyin et
@@ -14,22 +16,44 @@ DOWNLOAD_FOLDER = 'downloads'
 if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
 
+# ----------------------------------------------------------------------
+# 1. TEMPLATE ROUTING (Qanuni səhifələr və index)
+# ----------------------------------------------------------------------
+
 # Baş səhifə
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# YENİ ƏLAVƏ EDİLƏN: Məxfilik Siyasəti üçün Route
+# Məxfilik Siyasəti üçün Route
 @app.route('/privacy')
 def privacy_policy():
     return render_template('privacy.html')
 
-# YENİ ƏLAVƏ EDİLƏN: İstifadə Şərtləri üçün Route
+# İstifadə Şərtləri üçün Route
 @app.route('/terms')
 def terms_of_use():
     return render_template('terms.html')
 
-# Video Yükləmə Funksiyası
+# ----------------------------------------------------------------------
+# 2. ADS.TXT ROUTING (AdSense Təsdiqlənməsi üçün Əlavə Edildi)
+# ----------------------------------------------------------------------
+
+@app.route('/ads.txt')
+def serve_ads_txt():
+    # Bu, faylı repozitoriyanın əsas qovluğundan oxuyub göndərir.
+    # Flask-ın statik funksiyası Render kimi hosting-lərdə işləməsə, send_file istifadə olunur.
+    try:
+        # Faylı birbaşa cari qovluqda axtarır
+        return send_file('ads.txt', mimetype='text/plain')
+    except Exception as e:
+        logging.error(f"ads.txt faylı tapılmadı və ya göndərilmədi: {e}")
+        return "Not Found", 404
+
+# ----------------------------------------------------------------------
+# 3. YÜKLƏMƏ FUNKSİYASI (Təmizlənmiş yt-dlp konfiqurasiyası ilə)
+# ----------------------------------------------------------------------
+
 @app.route('/yukle', methods=['POST'])
 def yukle():
     data = request.get_json()
@@ -42,8 +66,9 @@ def yukle():
     random_filename = str(uuid.uuid4())
     filepath = os.path.join(DOWNLOAD_FOLDER, f"{random_filename}.mp4")
 
-    # yt-dlp ilə yükləmə tənzimləmələri
+    # yt-dlp ilə yükləmə tənzimləmələri (xəta verən postprocessor çıxarıldı)
     ydl_opts = {
+        # Ən yaxşı MP4 video və audio formatını seçir
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': filepath,
         'merge_output_format': 'mp4',
@@ -55,13 +80,12 @@ def yukle():
     try:
         logging.info(f"Video yüklənir: {url}")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # Video haqqında məlumatı çıxar
+            # Əsas məlumatı çıxarır (Yükləmədən əvvəl)
             info = ydl.extract_info(url, download=False)
             
-            # Əgər canlı yayım deyilsə və ya məlumat yoxdursa
-            if info.get('is_live') or info.get('filesize') is None:
-                 raise Exception("Video məlumatı tapılmadı və ya canlı yayım formatında oldu.")
-
+            if info.get('is_live'):
+                 raise Exception("Canlı yayım linklərini dəstəkləmir.")
+            
             # Videonu yüklə
             ydl.download([url])
 
@@ -72,10 +96,10 @@ def yukle():
 
     except Exception as e:
         logging.error(f"Yükləmə xətası baş verdi: {e}")
-        # Xəta baş verdikdə JSON formatında cavab qaytar
+        # Xəta baş verdikdə JSON formatında cavab qaytar (JavaScript-in başa düşməsi üçün)
         return jsonify({
             "success": False,
-            "message": f"TikTok videosunu yükləmək mümkün olmadı. (Server Bloklandı və ya link keçərsizdir: {e})"
+            "message": f"TikTok videosunu yükləmək mümkün olmadı. (Server Bloklandı və ya link keçərsizdir.)"
         }), 500  # 500 daxili server xətası
     finally:
         # Faylı göndərdikdən sonra sil
