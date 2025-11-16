@@ -55,8 +55,7 @@ def yukle():
         'external_downloader_args': ['-x16', '-k1M'],
         # TikTok üçün xüsusi
         'postprocessors': [
-            {'key': 'FFmpegVideoRemuxer', 'prefer_codec': 'mp4'},
-            # Filigranı çıxarmaq üçün xüsusi postprocessor ola bilər, lakin yt-dlp bunu default edir.
+            {'key': 'FFmpegVideoRemuxer', 'prefer_ext': 'mp4'},
         ],
     }
 
