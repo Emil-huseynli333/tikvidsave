@@ -48,15 +48,8 @@ def yukle():
         'outtmpl': filepath,
         'merge_output_format': 'mp4',
         'noplaylist': True,
-        # TikTok ilə blok problemini həll etməyə kömək edə biləcək bəzi tənzimləmələr
         'no_warnings': True,
         'skip_download': False,
-        'external_downloader': 'aria2c',
-        'external_downloader_args': ['-x16', '-k1M'],
-        # TikTok üçün xüsusi
-        'postprocessors': [
-            {'key': 'FFmpegVideoRemuxer', 'prefer_ext': 'mp4'},
-        ],
     }
 
     try:
