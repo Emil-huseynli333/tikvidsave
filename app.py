@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import os
 import uuid
 import logging
-from werkzeug.exceptions import HTTPException
 from yt_dlp import YoutubeDL, DownloadError
 
 # Loglama üçün tənzimləmə
@@ -24,31 +23,10 @@ if not os.path.exists(DOWNLOAD_FOLDER):
 def index():
     return render_template('index.html')
 
-@app.route('/privacy')
-def privacy_policy():
-    return render_template('privacy.html')
-
-@app.route('/terms')
-def terms_of_use():
-    return render_template('terms.html')
+# (Buradakı digər /privacy, /terms, /ads.txt routelarını dəyişməyin)
 
 # ----------------------------------------------------------------------
-# 2. ADS.TXT ROUTING (AdSense Təsdiqlənməsi üçün)
-# ----------------------------------------------------------------------
-
-@app.route('/ads.txt')
-def serve_ads_txt():
-    # Faylı repozitoriyanın əsas qovluğundan oxuyub göndərir.
-    try:
-        # Fayl oxumaq üçün send_from_directory istifadə etmək daha etibarlıdır
-        from flask import send_from_directory
-        return send_from_directory(os.getcwd(), 'ads.txt', mimetype='text/plain')
-    except Exception as e:
-        logging.error(f"ads.txt faylı tapılmadı və ya göndərilmədi: {e}")
-        return "Not Found", 404
-
-# ----------------------------------------------------------------------
-# 3. YÜKLƏMƏ FUNKSİYASI (RESPONSE OBYEKTİ İLƏ DƏQİQ ÖTÜRMƏ)
+# 2. YÜKLƏMƏ FUNKSİYASI (SON DÜZƏLİŞ)
 # ----------------------------------------------------------------------
 
 @app.route('/yukle', methods=['POST'])
@@ -75,32 +53,42 @@ def yukle():
 
     try:
         logging.info(f"Video yüklənmə sorğusu: {url}")
+        
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             
             if info.get('is_live'):
                  raise Exception("Canlı yayım linklərini dəstəkləmir.")
             
+            # Faylı diskinizə yükləyir
             ydl.download([url])
 
         logging.info(f"Video uğurla yükləndi: {filepath}")
         
-        # --- QƏTİ HƏLL: Faylı birbaşa HTTP Response kimi ötürürük ---
+        # --- QƏTİ HƏLL: send_file ilə bütün başlıqları düzgün ötürürük ---
         
-        # Faylı oxuyub birbaşa Response yaradırıq. Bu, 302 Redirect-in qarşısını alır.
-        with open(filepath, 'rb') as f:
-            data = f.read()
+        # Faylın ölçüsünü alır
+        file_size = os.path.getsize(filepath)
 
-        response = app.make_response(data)
+        # Faylı göndəririk. add_header=False əvvəlki başlığı silir.
+        response = send_file(
+            filepath,
+            mimetype='video/mp4',
+            as_attachment=True,
+            download_name='tiktok_video.mp4',
+            last_modified=os.path.getmtime(filepath) # Faylın son dəyişmə tarixini əlavə edir
+        )
         
-        # MIME Type və Yükləmə Başlıqları
-        response.headers['Content-Type'] = 'video/mp4'
-        response.headers['Content-Disposition'] = 'attachment; filename="tiktok_video.mp4"'
+        # Content-Length və Cache-Control başlıqlarını əl ilə təyin edirik
+        response.headers['Content-Length'] = file_size
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
         
         return response
 
     except DownloadError as e:
-        # yt-dlp xətaları üçün
+        # Xəta hallarında fayl silinməsin
         logging.error(f"Yükləmə (yt-dlp) xətası baş verdi: {e}")
         return jsonify({
             "success": False,
@@ -108,7 +96,6 @@ def yukle():
         }), 500
     
     except Exception as e:
-        # Digər bütün xətalar üçün
         logging.error(f"Ümumi server xətası: {e}")
         return jsonify({
             "success": False,
