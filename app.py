@@ -36,22 +36,21 @@ def terms_of_use():
     return render_template('terms.html')
 
 # ----------------------------------------------------------------------
-# 2. ADS.TXT ROUTING (AdSense Təsdiqlənməsi üçün Əlavə Edildi)
+# 2. ADS.TXT ROUTING (AdSense Təsdiqlənməsi üçün)
 # ----------------------------------------------------------------------
 
 @app.route('/ads.txt')
 def serve_ads_txt():
-    # Bu, faylı repozitoriyanın əsas qovluğundan oxuyub göndərir.
-    # Flask-ın statik funksiyası Render kimi hosting-lərdə işləməsə, send_file istifadə olunur.
+    # Faylı repozitoriyanın əsas qovluğundan oxuyub göndərir.
+    # Flask/Render-də ads.txt faylının birbaşa əlçatan olmasını təmin edir.
     try:
-        # Faylı birbaşa cari qovluqda axtarır
         return send_file('ads.txt', mimetype='text/plain')
     except Exception as e:
         logging.error(f"ads.txt faylı tapılmadı və ya göndərilmədi: {e}")
         return "Not Found", 404
 
 # ----------------------------------------------------------------------
-# 3. YÜKLƏMƏ FUNKSİYASI (Təmizlənmiş yt-dlp konfiqurasiyası ilə)
+# 3. YÜKLƏMƏ FUNKSİYASI (MIME Type düzəlişi ilə)
 # ----------------------------------------------------------------------
 
 @app.route('/yukle', methods=['POST'])
@@ -92,15 +91,21 @@ def yukle():
         logging.info(f"Video uğurla yükləndi: {filepath}")
         
         # Yüklənmiş faylı brauzerə göndər
-        return send_file(filepath, as_attachment=True, download_name='tiktok_video.mp4')
+        # MIME Type dəqiqləşdirilməsi Android/WebView yükləmə problemini həll edir
+        return send_file(
+            filepath, 
+            mimetype='video/mp4',
+            as_attachment=True, 
+            download_name='tiktok_video.mp4'
+        )
 
     except Exception as e:
         logging.error(f"Yükləmə xətası baş verdi: {e}")
-        # Xəta baş verdikdə JSON formatında cavab qaytar (JavaScript-in başa düşməsi üçün)
+        # Xəta baş verdikdə JSON formatında cavab qaytar
         return jsonify({
             "success": False,
             "message": f"TikTok videosunu yükləmək mümkün olmadı. (Server Bloklandı və ya link keçərsizdir.)"
-        }), 500  # 500 daxili server xətası
+        }), 500
     finally:
         # Faylı göndərdikdən sonra sil
         if os.path.exists(filepath):
