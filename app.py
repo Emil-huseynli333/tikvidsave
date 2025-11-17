@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, make_response
 import os
 import uuid
 import logging
 from yt_dlp import YoutubeDL, DownloadError
 
-# Loglama üçün tənzimləmə
+# Loglama üçün tənzimləmə (Xətaları izləmək üçün vacibdir)
 logging.basicConfig(level=logging.INFO)
 
 # Flask Tətbiqinin İcrası
@@ -21,10 +21,11 @@ if not os.path.exists(DOWNLOAD_FOLDER):
 
 @app.route('/')
 def index():
+    # Bu, sizin index.html faylınızı istifadə edir və dizayna toxunmur.
     return render_template('index.html')
 
 # ----------------------------------------------------------------------
-# 2. YÜKLƏMƏ FUNKSİYASI (FİNAL HƏLL: Streaming Generator)
+# 2. YÜKLƏMƏ FUNKSİYASI (SABİT VƏ XƏTASIZ VERSİYA)
 # ----------------------------------------------------------------------
 
 @app.route('/yukle', methods=['POST'])
@@ -39,7 +40,7 @@ def yukle():
     random_filename = str(uuid.uuid4())
     filepath = os.path.join(DOWNLOAD_FOLDER, f"{random_filename}.mp4")
 
-    # yt-dlp ilə yükləmə tənzimləmələri
+    # yt-dlp ilə yükləmə tənzimləmələri (ən yaxşı mp4 formatı)
     ydl_opts = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': filepath,
@@ -52,62 +53,48 @@ def yukle():
     try:
         logging.info(f"Video yüklənmə sorğusu: {url}")
         
+        # Faylı tam yükləyib bitirir
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            
-            if info.get('is_live'):
-                 raise Exception("Canlı yayım linklərini dəstəkləmir.")
-            
-            # Faylı diskinizə yükləyir
             ydl.download([url])
 
         logging.info(f"Video uğurla yükləndi: {filepath}")
-
-        # --- FİNAL QƏTİ HƏLL: Faylı hissələrlə oxuyub axınla göndəririk ---
         
-        def generate_chunks():
-            # Faylı kiçik hissələrlə oxuyur və göndərir
-            with open(filepath, 'rb') as f:
-                chunk_size = 8192 # 8KB
-                chunk = f.read(chunk_size)
-                while chunk:
-                    yield chunk
-                    chunk = f.read(chunk_size)
-
+        # --- ƏN STABİL FAYL ÖTÜRMƏ METODU (make_response) ---
+        
         file_size = os.path.getsize(filepath)
         
-        # Faylı Response obyektinə generator kimi ötürürük
-        response = Response(generate_chunks(), mimetype='video/mp4')
+        with open(filepath, 'rb') as f:
+            video_data = f.read()
+            
+        response = make_response(video_data)
         
-        # Başlıqlar
+        # Başlıqlar: Android DownloadManager-in işləməsi üçün kritikdir
+        response.headers['Content-Type'] = 'video/mp4'
         response.headers['Content-Disposition'] = 'attachment; filename="tiktok_video.mp4"'
-        response.headers['Content-Length'] = file_size 
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
+        response.headers['Content-Length'] = file_size
         
-        # Mütləq Transfer-Encoding-i silirik
+        # Xətalı Transfer-Encoding-i silirik (Serverlə əlaqə xətasının qarşısını alır)
         if 'Transfer-Encoding' in response.headers:
             del response.headers['Transfer-Encoding']
 
         return response
 
     except DownloadError as e:
-        # Xəta hallarında fayl silinməsin
-        logging.error(f"Yükləmə (yt-dlp) xətası baş verdi: {e}")
+        logging.error(f"Yükləmə xətası: {e}")
         return jsonify({
             "success": False,
-            "message": "TikTok videosunu yükləmək mümkün olmadı. (Server Bloklandı və ya link keçərsizdir.)"
-        }), 500
-    
+            "message": "Video tapılmadı və ya yüklənmədi. Linki yoxlayın."
+        }), 400
+        
     except Exception as e:
         logging.error(f"Ümumi server xətası: {e}")
         return jsonify({
             "success": False,
-            "message": f"Daxili server xətası baş verdi: {e}"
+            "message": f"Daxili server xətası baş verdi. (Logları yoxlayın: {e})"
         }), 500
         
     finally:
-        # Faylı göndərdikdən sonra sil
+        # Fayl istifadə edildikdən dərhal sonra silinir
         if os.path.exists(filepath):
             os.remove(filepath)
             logging.info(f"Fayl silindi: {filepath}")
