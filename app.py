@@ -9,18 +9,20 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__, template_folder='templates')
 
+# Yükləmələrin saxlanılacağı qovluğu təyin et
 DOWNLOAD_FOLDER = 'downloads'
 if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
 
 @app.route('/')
 def index():
+    # Burada sizin index.html faylınızın məzmunu render edilir
     return render_template('index.html')
 
 @app.route('/yukle', methods=['GET', 'POST']) 
 def yukle():
     
-    # POST Hissəsi (Yükləmənin Başlanması) - Dəyişmir, sabitdir.
+    # POST Hissəsi (Yükləmənin Başlanması)
     if request.method == 'POST':
         data = request.get_json()
         url = data.get('url')
@@ -44,6 +46,7 @@ def yukle():
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
             
+            # Uğurlu Halda Yönləndirmə URL-ini göndəririk 
             return jsonify({"success": True, "download_url": request.base_url + "?filename=" + random_filename}), 200
             
         except Exception as e:
@@ -53,7 +56,7 @@ def yukle():
         finally:
             pass
 
-    # GET Hissəsi (Faylın Ötürülməsi) - KRİTİK BAŞLIQ DÜZƏLİŞİ
+    # GET Hissəsi (Faylın Ötürülməsi) - Bütün başlıq uyğunsuzluqları burada həll edilir.
     elif request.method == 'GET':
         filename_uuid = request.args.get('filename')
         
@@ -67,7 +70,7 @@ def yukle():
 
         try:
             
-            # send_file istifadə edilir
+            # Flask-ın ən etibarlı fayl ötürmə funksiyası
             response = send_file(
                 filepath,
                 mimetype='video/mp4',
@@ -75,10 +78,10 @@ def yukle():
                 download_name='video.mp4' 
             )
             
-            # --- KRİTİK BAŞLIQLARIN ƏLAVƏSİ (DownloadManager Uyğunluğu) ---
-            response.headers['Content-Type'] = 'video/mp4' 
-            response.headers['Accept-Ranges'] = 'bytes'        # Faylın hissələrlə yüklənməsinə icazə verir
-            response.headers['Connection'] = 'close'           # Əlaqəni düzgün bağlayır (Android üçün vacibdir)
+            # --- QƏTİ HƏLL BAŞLIQLARI (Android üçün kritikdir) ---
+            response.headers['Content-Type'] = 'video/mp4'           # Mütləq MIME tipi təsdiqi
+            response.headers['Accept-Ranges'] = 'bytes'              # Hissəli yükləməyə icazə
+            response.headers['Connection'] = 'close'                 # Yükləmənin düzgün bağlanması üçün
             
             return response
             
