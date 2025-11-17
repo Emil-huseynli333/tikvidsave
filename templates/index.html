@@ -3,56 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TT Video Yükləyici</title>
+    <title>TikTok MP4 Yükləyici</title>
     <style>
-        /* Əsas Üslublar */
+        /* Əsas Üslublar: Tünd Bənövşəyi Fon */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f7f6; /* Açıq boz fon */
+            background-color: #2c2c3e; /* Tünd Bənövşəyi/Qara-Bənövşəyi Fon */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            color: #333;
+            color: #e0e0e0; /* Açıq Boz Mətn */
         }
 
         .container {
-            background-color: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* Kölgə */
+            background-color: #3b3b55; /* Daha Açıq Kart Fonu */
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             width: 100%;
             max-width: 400px;
             text-align: center;
         }
 
         h1 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 24px;
+            color: #fff;
+            margin-bottom: 25px;
+            font-size: 26px;
+        }
+        
+        /* İkon və Başlıq Üslubu */
+        .header-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px; /* Şəkilə uyğun ölçü */
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 30px;
         }
 
-        /* Giriş Sahəsi və Knapp Üslubu */
+        .header-title svg {
+            margin-right: 10px;
+            color: #e6205e; /* TikTok/Accent Rəngi */
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Giriş Sahəsi */
         #link-input {
-            width: calc(100% - 20px);
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 2px solid #ccc;
+            width: calc(100% - 24px);
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #5a5a7a;
+            background-color: #2c2c3e; 
+            color: #fff;
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 16px;
         }
 
+        /* Knapp Üslubu: Qırmızı/Çəhrayı */
         #yukle-btn {
-            background-color: #e6205e; /* TikTok qırmızı rəngi */
+            background-color: #e6205e; 
             color: white;
-            padding: 12px 25px;
+            padding: 15px 25px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             transition: background-color 0.3s ease;
             width: 100%;
@@ -67,26 +88,35 @@
             cursor: not-allowed;
         }
 
-        /* Status Mesajları üçün rəngli əlaqə */
+        /* Status Mesajları */
         #status-message {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 6px;
+            margin-top: 25px;
+            padding: 12px;
+            border-radius: 8px;
             font-weight: bold;
             min-height: 40px; 
-            text-align: left;
+            text-align: center;
+            color: #fff; 
         }
-        .loading { color: #3498db; } /* Mavi */
-        .success { color: #27ae60; } /* Yaşıl */
-        .error { color: #e74c3c; } /* Qırmızı */
+
+        /* Status Rəngləri */
+        .loading { background-color: #4a4a6b; color: #81d4fa; } 
+        .success { background-color: #4CAF50; color: #ffffff; } 
+        .error { background-color: #f44336; color: #ffffff; } 
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>TT Video Yükləyici</h1>
+        <div class="header-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 16H8V6h3v12zm5 0h-3V6h3v12z"/>
+            </svg>
+            TikTok MP4 Yükləyici
+        </div>
+        
         <input type="url" id="link-input" placeholder="TikTok linkini bura yapışdırın" required>
-        <button id="yukle-btn">YÜKLƏ</button>
+        <button id="yukle-btn">Yüklə və MP4 əldə et</button>
         <div id="status-message"></div>
     </div>
 
@@ -118,38 +148,34 @@
                     yukleButton.disabled = false;
                     
                     if (response.status === 200) {
-                        return response.json(); // Uğurlu halda JSON (download URL) gözləyirik
+                        return response.json(); 
                     } else {
-                        // Əgər 400/500 gəlirsə (server xətası)
+                        // 400/500 xətalarında serverdən JSON mesajı almağa çalışırıq
                         return response.json().then(data => {
-                            // Serverdən gələn xəta mesajını göstəririk
                             statusMessage.innerHTML = `<span class="error">❌ Server Status ${response.status} Xətası: ${data.message}</span>`;
                             throw new Error(`Server Status ${response.status}`);
                         }).catch(() => {
-                            // Əgər JSON parse edilməzsə (gözlənilməz cavab)
-                            throw new Error(`Server Status ${response.status} Gözlənilməz cavab.`);
+                            // JSON parse edilməzsə
+                            throw new Error(`Server Status ${response.status} Gözlənilməz cavab/əlaqə kəsildi.`);
                         });
                     }
                 })
                 .then(data => {
-                    // Yalnız POST uğurlu olduqda bu blok işləyir
                     if (data.success && data.download_url) {
                         // 2. Uğurlu cavab gəldi, indi GET sorğusunu başladırıq
-                        statusMessage.innerHTML = '<span class="success">✅ Uğurla hazırlandı! Yüklənmə başladı...</span>';
+                        statusMessage.innerHTML = '<span class="success">✅ Yüklənmə tamamlandı. Başqa link daxil edin.</span>';
                         
-                        // Bu, "/yukle?filename=..." ünvanına GET sorğusu göndərir
-                        // Və bu, Android DownloadListener-i işə salır.
+                        // Bu, "/yukle?filename=..." ünvanına GET sorğusu göndərir və yükləməni başladır
                         window.location.href = data.download_url;
                         
                     } else if (data.success === false) {
-                        // Əgər cavab JSON idisə, amma success=false idisə (daxili xəta)
+                        // Serverdən gələn XƏTA mesajını göstəririk
                          statusMessage.innerHTML = `<span class="error">❌ Xəta: ${data.message}</span>`;
                     }
                 })
                 .catch(error => {
                     yukleButton.disabled = false;
                     console.error('Frontend Xətası:', error);
-                    // Əgər xəta artıq status mesajına yazılmayıbsa, ümumi mesaj veririk
                     if (!statusMessage.innerHTML.includes("Status")) {
                          statusMessage.innerHTML = `<span class="error">⚠️ Serverlə əlaqə qurularkən kritik xəta. (Yoxlayın: ${error.message})</span>`;
                     }
