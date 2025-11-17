@@ -75,16 +75,20 @@ def yukle():
             filepath,
             mimetype='video/mp4',
             as_attachment=True,
-            download_name='tiktok_video.mp4',
-            last_modified=os.path.getmtime(filepath) # Faylın son dəyişmə tarixini əlavə edir
+            download_name='tiktok_video.mp4'
         )
         
-        # Content-Length və Cache-Control başlıqlarını əl ilə təyin edirik
-        response.headers['Content-Length'] = file_size
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
+        # --- ƏN KRİTİK DƏYİŞİKLİK: Yükləməyə mane olan başlıqları silir ---
+        # Bu, Render/Heroku kimi xidmətlərin əlavə etdiyi başlığı silə bilər.
+        # Əsas başlıqları yenidən təyin edirik.
+        response.headers['Content-Disposition'] = f"attachment; filename=tiktok_video.mp4"
+        response.headers['Content-Type'] = 'video/mp4'
+        response.headers['Content-Length'] = os.path.getsize(filepath)
         
+        # Flask-ın özünün və ya hosting-in yaratdığı Transfer-Encoding başlığını silin.
+        if 'Transfer-Encoding' in response.headers:
+             del response.headers['Transfer-Encoding']
+
         return response
 
     except DownloadError as e:
