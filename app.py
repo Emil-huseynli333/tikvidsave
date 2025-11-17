@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, send_file # send_file İMPORT EDİLDİ
 import os
 import uuid
 import logging
-import io 
 from yt_dlp import YoutubeDL, DownloadError
 
 # Loglama üçün tənzimləmə
@@ -25,11 +24,12 @@ def index():
     return render_template('index.html')
 
 # ----------------------------------------------------------------------
-# 2. YÜKLƏMƏ FUNKSİYASI (FİNAL HƏLL: GET/POST İcazəsi + Sabitlik)
+# 2. YÜKLƏMƏ FUNKSİYASI (FİNAL QƏTİ HƏLL: send_file)
 # ----------------------------------------------------------------------
 
 @app.route('/yukle', methods=['GET', 'POST']) 
 def yukle():
+    
     # Fayl yükləməni başlatmaq üçün POST sorğusu
     if request.method == 'POST':
         data = request.get_json()
@@ -58,7 +58,7 @@ def yukle():
 
             logging.info(f"Video uğurla yükləndi: {filepath}")
             
-            # Uğurlu Halda Yönləndirmə URL-ini göndəririk (JavaScript bunu gözləyir)
+            # Uğurlu Halda Yönləndirmə URL-ini göndəririk 
             return jsonify({"success": True, "download_url": request.base_url + "?filename=" + random_filename}), 200
             
         except Exception as e:
@@ -69,12 +69,12 @@ def yukle():
             }), 500
             
         finally:
-            # Fayl hələlik silinmir, GET müraciətini gözləyir.
             pass
 
-    # Faylı göndərmək üçün GET sorğusu (window.location.href tərəfindən gəlir)
+    # Faylı göndərmək üçün GET sorğusu (Android DownloadManager üçün kritik)
     elif request.method == 'GET':
         filename_uuid = request.args.get('filename')
+        
         if not filename_uuid:
              return jsonify({"success": False, "message": "Fayl identifikasiyası tapılmadı."}), 400
              
@@ -84,24 +84,23 @@ def yukle():
             return jsonify({"success": False, "message": "Yükləmə faylı artıq silinib və ya tapılmadı."}), 404
 
         try:
-            file_size = os.path.getsize(filepath)
+            logging.info(f"Fayl ötürülməsi başladıldı: {filepath}")
             
-            with open(filepath, 'rb') as f:
-                video_data = f.read()
-                
-            response = make_response(video_data)
+            # --- KRİTİK HƏLL: send_file fayl ötürülməsini və başlıqları stabil edir ---
+            response = send_file(
+                filepath,
+                mimetype='video/mp4',
+                as_attachment=True,
+                download_name='video.mp4' 
+            )
             
-            # Başlıqlar: Yükləmə Uğursuz Oldu xətasını həll edir
-            response.headers['Content-Type'] = 'video/mp4'
-            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"' # Sadə fayl adı
-            response.headers['Content-Length'] = file_size
+            # 'Endirmə Uğursuz Oldu' xətasının qarşısını alır
+            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"'
             
-            if 'Transfer-Encoding' in response.headers:
-                del response.headers['Transfer-Encoding']
-
             return response
             
         except Exception as e:
+             logging.error(f"Fayl ötürülməsi zamanı xəta: {e}")
              return jsonify({"success": False, "message": f"Fayl ötürülməsi zamanı xəta: {e}"}), 500
              
         finally:
