@@ -10,7 +10,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f7f6;
+            background-color: #f4f7f6; /* Açıq boz fon */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,7 +22,7 @@
             background-color: #ffffff;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* Kölgə */
             width: 100%;
             max-width: 400px;
             text-align: center;
@@ -39,14 +39,14 @@
             width: calc(100% - 20px);
             padding: 12px;
             margin-bottom: 15px;
-            border: 1px solid #ccc;
+            border: 2px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 16px;
         }
 
         #yukle-btn {
-            background-color: #e6205e; /* TikTok rənginə yaxın */
+            background-color: #e6205e; /* TikTok qırmızı rəngi */
             color: white;
             padding: 12px 25px;
             border: none;
@@ -67,18 +67,18 @@
             cursor: not-allowed;
         }
 
-        /* Status Mesajları */
+        /* Status Mesajları üçün rəngli əlaqə */
         #status-message {
             margin-top: 20px;
             padding: 10px;
             border-radius: 6px;
             font-weight: bold;
             min-height: 40px; 
-            /* Rəngləri öz dizaynınıza uyğunlaşdırın */
+            text-align: left;
         }
-        .loading { color: #3498db; }
-        .success { color: #27ae60; }
-        .error { color: #e74c3c; }
+        .loading { color: #3498db; } /* Mavi */
+        .success { color: #27ae60; } /* Yaşıl */
+        .error { color: #e74c3c; } /* Qırmızı */
     </style>
 </head>
 <body>
@@ -92,7 +92,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Zəhmət olmasa, element ID-lərinin dizaynınızdakı ilə eyni olduğundan əmin olun!
             const yukleButton = document.getElementById('yukle-btn');
             const linkInput = document.getElementById('link-input');
             const statusMessage = document.getElementById('status-message'); 
@@ -107,6 +106,7 @@
                 statusMessage.innerHTML = '<span class="loading">⏳ Yükləmə hazırlanır, zəhmət olmasa gözləyin...</span>';
                 yukleButton.disabled = true;
 
+                // 1. POST sorğusu ilə fayl yükləməni başlatırıq
                 fetch('/yukle', {
                     method: 'POST',
                     headers: {
@@ -117,38 +117,42 @@
                 .then(response => {
                     yukleButton.disabled = false;
                     
-                    // --- KRİTİK JSON XƏTASI HƏLLİ: Fayl/JSON ayrılması ---
-                    const contentType = response.headers.get("content-type");
-
-                    if (response.status === 200 && contentType && contentType.includes("video/mp4")) {
-                        // Uğurlu Fayl Cavabı: Yükləməni başlatmaq üçün yönləndirmə
-                        statusMessage.innerHTML = '<span class="success">✅ Uğurla hazırlandı! Yüklənmə başladı...</span>';
-                        // Android WebView DownloadListener-i işə salır
-                        window.location.href = response.url;
-                        return null; // JSON oxumağa çalışmırıq
-                        
+                    if (response.status === 200) {
+                        return response.json(); // Uğurlu halda JSON (download URL) gözləyirik
                     } else {
-                        // Xəta və ya Server tərəfindən göndərilən JSON mesajı.
-                        return response.json();
+                        // Əgər 400/500 gəlirsə (server xətası)
+                        return response.json().then(data => {
+                            // Serverdən gələn xəta mesajını göstəririk
+                            statusMessage.innerHTML = `<span class="error">❌ Server Status ${response.status} Xətası: ${data.message}</span>`;
+                            throw new Error(`Server Status ${response.status}`);
+                        }).catch(() => {
+                            // Əgər JSON parse edilməzsə (gözlənilməz cavab)
+                            throw new Error(`Server Status ${response.status} Gözlənilməz cavab.`);
+                        });
                     }
                 })
                 .then(data => {
-                    if (data === null) {
-                        statusMessage.innerHTML = '<span class="success">✅ Yüklənmə sorğusu sistemə göndərildi.</span>';
-                        return; 
-                    }
-                    
-                    // Serverdən gələn XƏTA mesajını göstəririk
-                    if (data.success === false) {
-                        statusMessage.innerHTML = `<span class="error">❌ Xəta: ${data.message}</span>`;
-                    } else {
-                        statusMessage.innerHTML = '<span class="error">⚠️ Gözlənilməz cavab formatı.</span>';
+                    // Yalnız POST uğurlu olduqda bu blok işləyir
+                    if (data.success && data.download_url) {
+                        // 2. Uğurlu cavab gəldi, indi GET sorğusunu başladırıq
+                        statusMessage.innerHTML = '<span class="success">✅ Uğurla hazırlandı! Yüklənmə başladı...</span>';
+                        
+                        // Bu, "/yukle?filename=..." ünvanına GET sorğusu göndərir
+                        // Və bu, Android DownloadListener-i işə salır.
+                        window.location.href = data.download_url;
+                        
+                    } else if (data.success === false) {
+                        // Əgər cavab JSON idisə, amma success=false idisə (daxili xəta)
+                         statusMessage.innerHTML = `<span class="error">❌ Xəta: ${data.message}</span>`;
                     }
                 })
                 .catch(error => {
                     yukleButton.disabled = false;
                     console.error('Frontend Xətası:', error);
-                    statusMessage.innerHTML = '<span class="error">⚠️ Serverlə əlaqə qurularkən xəta. (Yenidən yoxlayın.)</span>';
+                    // Əgər xəta artıq status mesajına yazılmayıbsa, ümumi mesaj veririk
+                    if (!statusMessage.innerHTML.includes("Status")) {
+                         statusMessage.innerHTML = `<span class="error">⚠️ Serverlə əlaqə qurularkən kritik xəta. (Yoxlayın: ${error.message})</span>`;
+                    }
                 });
             });
         });

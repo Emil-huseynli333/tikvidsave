@@ -2,9 +2,10 @@ from flask import Flask, render_template, request, jsonify, make_response
 import os
 import uuid
 import logging
+import io 
 from yt_dlp import YoutubeDL, DownloadError
 
-# Loglama üçün tənzimləmə (Xətaları izləmək üçün vacibdir)
+# Loglama üçün tənzimləmə
 logging.basicConfig(level=logging.INFO)
 
 # Flask Tətbiqinin İcrası
@@ -21,83 +22,95 @@ if not os.path.exists(DOWNLOAD_FOLDER):
 
 @app.route('/')
 def index():
-    # Bu, sizin index.html faylınızı istifadə edir və dizayna toxunmur.
     return render_template('index.html')
 
 # ----------------------------------------------------------------------
-# 2. YÜKLƏMƏ FUNKSİYASI (SABİT VƏ XƏTASIZ VERSİYA)
+# 2. YÜKLƏMƏ FUNKSİYASI (FİNAL HƏLL: GET/POST İcazəsi + Sabitlik)
 # ----------------------------------------------------------------------
 
-@app.route('/yukle', methods=['POST'])
+@app.route('/yukle', methods=['GET', 'POST']) 
 def yukle():
-    data = request.get_json()
-    url = data.get('url')
-    
-    if not url:
-        return jsonify({"success": False, "message": "Link daxil edilməyib."}), 400
-
-    # Təsadüfi fayl adı yarat
-    random_filename = str(uuid.uuid4())
-    filepath = os.path.join(DOWNLOAD_FOLDER, f"{random_filename}.mp4")
-
-    # yt-dlp ilə yükləmə tənzimləmələri (ən yaxşı mp4 formatı)
-    ydl_opts = {
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-        'outtmpl': filepath,
-        'merge_output_format': 'mp4',
-        'noplaylist': True,
-        'no_warnings': True,
-        'skip_download': False,
-    }
-
-    try:
-        logging.info(f"Video yüklənmə sorğusu: {url}")
+    # Fayl yükləməni başlatmaq üçün POST sorğusu
+    if request.method == 'POST':
+        data = request.get_json()
+        url = data.get('url')
         
-        # Faylı tam yükləyib bitirir
-        with YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+        if not url:
+            return jsonify({"success": False, "message": "Link daxil edilməyib."}), 400
 
-        logging.info(f"Video uğurla yükləndi: {filepath}")
-        
-        # --- ƏN STABİL FAYL ÖTÜRMƏ METODU (make_response) ---
-        
-        file_size = os.path.getsize(filepath)
-        
-        with open(filepath, 'rb') as f:
-            video_data = f.read()
+        random_filename = str(uuid.uuid4())
+        filepath = os.path.join(DOWNLOAD_FOLDER, f"{random_filename}.mp4")
+
+        ydl_opts = {
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'outtmpl': filepath,
+            'merge_output_format': 'mp4',
+            'noplaylist': True,
+            'no_warnings': True,
+            'skip_download': False,
+        }
+
+        try:
+            logging.info(f"Video yüklənmə sorğusu: {url}")
             
-        response = make_response(video_data)
-        
-        # Başlıqlar: Android DownloadManager-in işləməsi üçün kritikdir
-        response.headers['Content-Type'] = 'video/mp4'
-        response.headers['Content-Disposition'] = 'attachment; filename="tiktok_video.mp4"'
-        response.headers['Content-Length'] = file_size
-        
-        # Xətalı Transfer-Encoding-i silirik (Serverlə əlaqə xətasının qarşısını alır)
-        if 'Transfer-Encoding' in response.headers:
-            del response.headers['Transfer-Encoding']
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
 
-        return response
+            logging.info(f"Video uğurla yükləndi: {filepath}")
+            
+            # Uğurlu Halda Yönləndirmə URL-ini göndəririk (JavaScript bunu gözləyir)
+            return jsonify({"success": True, "download_url": request.base_url + "?filename=" + random_filename}), 200
+            
+        except Exception as e:
+            logging.error(f"Server xətası: {e}")
+            return jsonify({
+                "success": False,
+                "message": f"Daxili server xətası baş verdi. {e}"
+            }), 500
+            
+        finally:
+            # Fayl hələlik silinmir, GET müraciətini gözləyir.
+            pass
 
-    except DownloadError as e:
-        logging.error(f"Yükləmə xətası: {e}")
-        return jsonify({
-            "success": False,
-            "message": "Video tapılmadı və ya yüklənmədi. Linki yoxlayın."
-        }), 400
-        
-    except Exception as e:
-        logging.error(f"Ümumi server xətası: {e}")
-        return jsonify({
-            "success": False,
-            "message": f"Daxili server xətası baş verdi. (Logları yoxlayın: {e})"
-        }), 500
-        
-    finally:
-        # Fayl istifadə edildikdən dərhal sonra silinir
-        if os.path.exists(filepath):
-            os.remove(filepath)
-            logging.info(f"Fayl silindi: {filepath}")
+    # Faylı göndərmək üçün GET sorğusu (window.location.href tərəfindən gəlir)
+    elif request.method == 'GET':
+        filename_uuid = request.args.get('filename')
+        if not filename_uuid:
+             return jsonify({"success": False, "message": "Fayl identifikasiyası tapılmadı."}), 400
+             
+        filepath = os.path.join(DOWNLOAD_FOLDER, f"{filename_uuid}.mp4")
+
+        if not os.path.exists(filepath):
+            return jsonify({"success": False, "message": "Yükləmə faylı artıq silinib və ya tapılmadı."}), 404
+
+        try:
+            file_size = os.path.getsize(filepath)
+            
+            with open(filepath, 'rb') as f:
+                video_data = f.read()
+                
+            response = make_response(video_data)
+            
+            # Başlıqlar: Yükləmə Uğursuz Oldu xətasını həll edir
+            response.headers['Content-Type'] = 'video/mp4'
+            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"' # Sadə fayl adı
+            response.headers['Content-Length'] = file_size
+            
+            if 'Transfer-Encoding' in response.headers:
+                del response.headers['Transfer-Encoding']
+
+            return response
+            
+        except Exception as e:
+             return jsonify({"success": False, "message": f"Fayl ötürülməsi zamanı xəta: {e}"}), 500
+             
+        finally:
+            # Fayl göndərildikdən sonra mütləq silinir
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                logging.info(f"Fayl silindi: {filepath}")
+                
+    return jsonify({"success": False, "message": "Metod keçərsizdir."}), 405
 
 
 if __name__ == '__main__':
