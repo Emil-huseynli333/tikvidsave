@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, make_response
 import os
 import uuid
 import logging
@@ -23,10 +23,10 @@ if not os.path.exists(DOWNLOAD_FOLDER):
 def index():
     return render_template('index.html')
 
-# (Buradakı digər /privacy, /terms, /ads.txt routelarını dəyişməyin)
+# (Buradakı digər routelarınızı ehtiyac varsa əlavə edin)
 
 # ----------------------------------------------------------------------
-# 2. YÜKLƏMƏ FUNKSİYASI (SON DÜZƏLİŞ)
+# 2. YÜKLƏMƏ FUNKSİYASI (CRITICAL FIX: Response Obyekti ilə Göndərmə)
 # ----------------------------------------------------------------------
 
 @app.route('/yukle', methods=['POST'])
@@ -65,29 +65,31 @@ def yukle():
 
         logging.info(f"Video uğurla yükləndi: {filepath}")
         
-        # --- QƏTİ HƏLL: send_file ilə bütün başlıqları düzgün ötürürük ---
+        # --- QƏTİ HƏLL: Faylı birbaşa oxuyub Response obyekti ilə göndərmə ---
         
-        # Faylın ölçüsünü alır
+        # Faylın ölçüsünü alır (mütləq lazımdır)
         file_size = os.path.getsize(filepath)
-
-        # Faylı göndəririk. add_header=False əvvəlki başlığı silir.
-        response = send_file(
-            filepath,
-            mimetype='video/mp4',
-            as_attachment=True,
-            download_name='tiktok_video.mp4'
-        )
         
-        # --- ƏN KRİTİK DƏYİŞİKLİK: Yükləməyə mane olan başlıqları silir ---
-        # Bu, Render/Heroku kimi xidmətlərin əlavə etdiyi başlığı silə bilər.
-        # Əsas başlıqları yenidən təyin edirik.
-        response.headers['Content-Disposition'] = f"attachment; filename=tiktok_video.mp4"
+        # Faylı birbaşa oxuyuruq
+        with open(filepath, 'rb') as f:
+            data = f.read()
+            
+        # Response obyekti yaradırıq
+        response = make_response(data)
+        
+        # --- ƏN KRİTİK BAŞLIQLAR: Download Manager üçün uyğunluq ---
         response.headers['Content-Type'] = 'video/mp4'
-        response.headers['Content-Length'] = os.path.getsize(filepath)
+        response.headers['Content-Disposition'] = 'attachment; filename="tiktok_video.mp4"'
+        response.headers['Content-Length'] = file_size # Dəqiq uzunluq təmin edilir
         
-        # Flask-ın özünün və ya hosting-in yaratdığı Transfer-Encoding başlığını silin.
+        # Caching/Buffer problemlərini həll edir
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        # Hosting tərəfindən əlavə edilə biləcək problemli başlıqları təmizləyir
         if 'Transfer-Encoding' in response.headers:
-             del response.headers['Transfer-Encoding']
+            del response.headers['Transfer-Encoding']
 
         return response
 
