@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, Response
 import os
 import uuid
 import logging
@@ -16,17 +16,15 @@ if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
 
 # ----------------------------------------------------------------------
-# 1. TEMPLATE ROUTING (Qanuni səhifələr və index)
+# 1. TEMPLATE ROUTING 
 # ----------------------------------------------------------------------
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# (Buradakı digər routelarınızı ehtiyac varsa əlavə edin)
-
 # ----------------------------------------------------------------------
-# 2. YÜKLƏMƏ FUNKSİYASI (CRITICAL FIX: Response Obyekti ilə Göndərmə)
+# 2. YÜKLƏMƏ FUNKSİYASI (FİNAL HƏLL: Streaming Generator)
 # ----------------------------------------------------------------------
 
 @app.route('/yukle', methods=['POST'])
@@ -64,30 +62,30 @@ def yukle():
             ydl.download([url])
 
         logging.info(f"Video uğurla yükləndi: {filepath}")
+
+        # --- FİNAL QƏTİ HƏLL: Faylı hissələrlə oxuyub axınla göndəririk ---
         
-        # --- QƏTİ HƏLL: Faylı birbaşa oxuyub Response obyekti ilə göndərmə ---
-        
-        # Faylın ölçüsünü alır (mütləq lazımdır)
+        def generate_chunks():
+            # Faylı kiçik hissələrlə oxuyur və göndərir
+            with open(filepath, 'rb') as f:
+                chunk_size = 8192 # 8KB
+                chunk = f.read(chunk_size)
+                while chunk:
+                    yield chunk
+                    chunk = f.read(chunk_size)
+
         file_size = os.path.getsize(filepath)
         
-        # Faylı birbaşa oxuyuruq
-        with open(filepath, 'rb') as f:
-            data = f.read()
-            
-        # Response obyekti yaradırıq
-        response = make_response(data)
+        # Faylı Response obyektinə generator kimi ötürürük
+        response = Response(generate_chunks(), mimetype='video/mp4')
         
-        # --- ƏN KRİTİK BAŞLIQLAR: Download Manager üçün uyğunluq ---
-        response.headers['Content-Type'] = 'video/mp4'
+        # Başlıqlar
         response.headers['Content-Disposition'] = 'attachment; filename="tiktok_video.mp4"'
-        response.headers['Content-Length'] = file_size # Dəqiq uzunluq təmin edilir
-        
-        # Caching/Buffer problemlərini həll edir
+        response.headers['Content-Length'] = file_size 
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
         
-        # Hosting tərəfindən əlavə edilə biləcək problemli başlıqları təmizləyir
+        # Mütləq Transfer-Encoding-i silirik
         if 'Transfer-Encoding' in response.headers:
             del response.headers['Transfer-Encoding']
 
