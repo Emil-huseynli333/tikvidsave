@@ -3,185 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" href="favicon.png" type="image/png"> 
+    
     <title>TikTok MP4 Yükləyici</title>
+    
     <style>
-        /* Əsas Üslublar: Tünd Bənövşəyi Fon */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #2c2c3e; /* Tünd Bənövşəyi/Qara-Bənövşəyi Fon */
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: flex-start; /* Kontenti yuxarıdan başlamaq üçün */
             min-height: 100vh;
-            color: #e0e0e0; /* Açıq Boz Mətn */
+            background-color: #2c2c3e; /* Tünd arxa fon */
+            color: #f1f1f1;
+            padding-top: 50px;
         }
 
         .container {
-            background-color: #3b3b55; /* Daha Açıq Kart Fonu */
-            padding: 35px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background-color: #3b3b5c;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             text-align: center;
+            margin-bottom: 30px; /* Aşağıdakı məzmun üçün boşluq */
         }
 
         h1 {
-            color: #fff;
-            margin-bottom: 25px;
-            font-size: 26px;
-        }
-        
-        /* İkon və Başlıq Üslubu */
-        .header-title {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px; /* Şəkilə uyğun ölçü */
-            font-weight: bold;
-            color: #fff;
+            color: #ff5577; /* Vurğulama rəngi */
             margin-bottom: 30px;
+            font-size: 1.8em;
         }
 
-        .header-title svg {
-            margin-right: 10px;
-            color: #e6205e; /* TikTok/Accent Rəngi */
-            width: 24px;
-            height: 24px;
-        }
-
-        /* Giriş Sahəsi */
-        #link-input {
-            width: calc(100% - 24px);
-            padding: 14px;
+        input[type="url"] {
+            width: calc(100% - 20px);
+            padding: 15px;
             margin-bottom: 20px;
-            border: 1px solid #5a5a7a;
-            background-color: #2c2c3e; 
-            color: #fff;
-            border-radius: 8px;
+            border: 1px solid #555577;
+            border-radius: 5px;
+            background-color: #4a4a6b;
+            color: #f1f1f1;
+            font-size: 1em;
             box-sizing: border-box;
-            font-size: 16px;
         }
 
-        /* Knapp Üslubu: Qırmızı/Çəhrayı */
-        #yukle-btn {
-            background-color: #e6205e; 
+        button {
+            background-color: #ff5577;
             color: white;
             padding: 15px 25px;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 1.1em;
             font-weight: bold;
             transition: background-color 0.3s ease;
             width: 100%;
         }
 
-        #yukle-btn:hover:not(:disabled) {
-            background-color: #d81c50;
-        }
-        
-        #yukle-btn:disabled {
-            background-color: #f7a3b8;
-            cursor: not-allowed;
+        button:hover {
+            background-color: #e54d6a;
         }
 
-        /* Status Mesajları */
         #status-message {
-            margin-top: 25px;
-            padding: 12px;
-            border-radius: 8px;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
             font-weight: bold;
-            min-height: 40px; 
-            text-align: center;
-            color: #fff; 
+            display: none;
+            animation: fadeIn 0.5s;
         }
 
-        /* Status Rəngləri */
-        .loading { background-color: #4a4a6b00; color: #ffffff; } 
-        .success { background-color: #4caf4f00; color: #ffffff; } 
-        .error { background-color: #f44336; color: #ffffff; } 
+        /* DƏYİŞDİRİLMİŞ STATUS RƏNGLƏRİ */
+        .loading { background-color: #4a4a6b; color: #ffeb3b; } /* Mətn rəngi dəyişdirildi */
+        .success { background-color: #4caf4f00; color: #ffffff; } /* Fon şəffafdır */
+        .error { background-color: #f44336; color: #ffffff; }
+        
+        /* ------------------------------------------------ */
+        /* YENİ MƏZMUN BLOKLARININ CSS STILLƏRİ */
+        /* ------------------------------------------------ */
+        
+        .content-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            color: #f1f1f1;
+            background: #2a2a47; /* Əsas formanın fonundan bir az tünd */
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            text-align: left;
+        }
+
+        .info-section h1, .info-section h2, .faq-section h2 {
+            color: #ffffff;
+            margin-top: 30px;
+            border-bottom: 2px solid #555577;
+            padding-bottom: 5px;
+        }
+
+        .info-section ul {
+            list-style: disc;
+            margin-left: 20px;
+            padding: 10px 0;
+            line-height: 1.6;
+        }
+
+        .faq-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #4a4a6b;
+            border-radius: 5px;
+            background: #333355;
+        }
+
+        .faq-item h3 {
+            color: #ff5577; 
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .footer-content {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 1px solid #4a4a6b;
+            color: #aaaaaa;
+            font-size: 0.9em;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="header-title">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 16H8V6h3v12zm5 0h-3V6h3v12z"/>
-            </svg>
-            TikTok MP4 Yükləyici
+        <h1><i class="fas fa-magic"></i> TikTok MP4 Yükləyici</h1>
+        
+        <form id="download-form">
+            <input type="url" id="tiktok-url" placeholder="TikTok linkini bura yapışdırın" required>
+            <button type="submit">Yüklə və MP4 əldə et</button>
+        </form>
+
+        <div id="status-message" class="error" style="display: none;"></div>
+    </div>
+    
+<div class="content-container">
+
+    <section class="info-section">
+        <h1>✨ TikTok MP4 Yükləyicisi ilə Tanış Olun</h1>
+        <p>
+            Sizə ən sevdiyiniz TikTok videolarını **filigransız (Watermark olmadan)** və yüksək keyfiyyətdə MP4 formatında yükləməyə kömək edirik. Proses çox sadədir: linki yapışdırın və yükləyin. 
+            Bizim alətimiz istifadəçilərin ən yaxşı təcrübəni qazanması üçün hazırlanmışdır.
+        </p>
+
+        <h2>Niyə Bizi Seçməlisiniz?</h2>
+        <ul>
+            <li>**Filigransız Yükləmə:** TikTok-un loqosu olmadan təmiz videolar əldə edin.</li>
+            <li>**Yüksək Keyfiyyət:** Videoları orijinal keyfiyyətdə MP4 formatında saxlayın.</li>
+            <li>**Pulsuz və Limitsiz:** Heç bir qeydiyyat tələb olunmur və istədiyiniz qədər yükləyə bilərsiniz.</li>
+            <li>**Çoxplatformalı Dəstək:** Bütün cihazlarda (Android, iOS, PC) işləyir.</li>
+        </ul>
+    </section>
+
+    <section class="faq-section">
+        <h2>❓ Tez-tez Verilən Suallar (FAQ)</h2>
+        
+        <div class="faq-item">
+            <h3>TikTok videosunu necə yükləyə bilərəm?</h3>
+            <p>Çox asandır! TikTok tətbiqindəki "Paylaş" düyməsinə klikləyin, "Link kopyala" seçin və kopyaladığınız linki yuxarıdakı giriş qutusuna yapışdırıb "Yüklə" düyməsini basın.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Filigransız yükləmək mümkündürmü?</h3>
+            <p>Bəli, bizim xidmətimizdə yüklədiyiniz bütün videolar TikTok loqosu olmadan təmiz, orijinal keyfiyyətdə olur.</p>
         </div>
         
-        <input type="url" id="link-input" placeholder="TikTok linkini bura yapışdırın" required>
-        <button id="yukle-btn">Yüklə və MP4 əldə et</button>
-        <div id="status-message"></div>
-    </div>
+    </section>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const yukleButton = document.getElementById('yukle-btn');
-            const linkInput = document.getElementById('link-input');
-            const statusMessage = document.getElementById('status-message'); 
+    <footer class="footer-content">
+        <p>&copy; 2024 TikTok MP4 Yükləyici. Bütün hüquqlar qorunur.</p>
+    </footer>
+    
+</div>
+<script>
+        document.getElementById('download-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = document.getElementById('tiktok-url').value;
+            
+            updateStatus('Yükləmə hazırlanır, zəhmət olmasa gözləyin...', 'loading'); // Emoji silindi
 
-            yukleButton.addEventListener('click', function() {
-                const videoUrl = linkInput.value.trim();
-                if (!videoUrl) {
-                    statusMessage.innerHTML = '<span class="error">❌ Zəhmət olmasa, TikTok linkini daxil edin.</span>';
-                    return;
+            fetch('/yukle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => {
+                if (response.status === 404) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Video linki tapılmadı.');
+                    });
                 }
-
-                statusMessage.innerHTML = '<span class="loading">⏳ Yükləmə hazırlanır, zəhmət olmasa gözləyin...</span>';
-                yukleButton.disabled = true;
-
-                // 1. POST sorğusu ilə fayl yükləməni başlatırıq
-                fetch('/yukle', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: videoUrl })
-                })
-                .then(response => {
-                    yukleButton.disabled = false;
+                if (!response.ok) {
+                    throw new Error('Server Xətası: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.download_url) {
+                    // Yükləməni başlat
+                    const link = document.createElement('a');
+                    link.href = data.download_url;
+                    link.target = '_blank'; // Yeni tabda açır (daha təmiz yükləmə)
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                     
-                    if (response.status === 200) {
-                        return response.json(); 
-                    } else {
-                        // 400/500 xətalarında serverdən JSON mesajı almağa çalışırıq
-                        return response.json().then(data => {
-                            statusMessage.innerHTML = `<span class="error">❌ Server Status ${response.status} Xətası: ${data.message}</span>`;
-                            throw new Error(`Server Status ${response.status}`);
-                        }).catch(() => {
-                            // JSON parse edilməzsə
-                            throw new Error(`Server Status ${response.status} Gözlənilməz cavab/əlaqə kəsildi.`);
-                        });
-                    }
-                })
-                .then(data => {
-                    if (data.success && data.download_url) {
-                        // 2. Uğurlu cavab gəldi, indi GET sorğusunu başladırıq
-                        statusMessage.innerHTML = '<span class="success">✅ Yüklənmə tamamlandı. Başqa link daxil edin.</span>';
-                        
-                        // Bu, "/yukle?filename=..." ünvanına GET sorğusu göndərir və yükləməni başladır
-                        window.location.href = data.download_url;
-                        
-                    } else if (data.success === false) {
-                        // Serverdən gələn XƏTA mesajını göstəririk
-                         statusMessage.innerHTML = `<span class="error">❌ Xəta: ${data.message}</span>`;
-                    }
-                })
-                .catch(error => {
-                    yukleButton.disabled = false;
-                    console.error('Frontend Xətası:', error);
-                    if (!statusMessage.innerHTML.includes("Status")) {
-                         statusMessage.innerHTML = `<span class="error">⚠️ Serverlə əlaqə qurularkən kritik xəta. (Yoxlayın: ${error.message})</span>`;
-                    }
-                });
+                    updateStatus('Yüklənmə tamamlandı. Başqa link daxil edin.', 'success'); // Emoji silindi
+                } else {
+                    throw new Error(data.message || 'Gözlənilməz xəta baş verdi.');
+                }
+            })
+            .catch(error => {
+                updateStatus(error.message, 'error'); // Emoji silindi
+                console.error('Error:', error);
             });
         });
+
+        // DƏYİŞDİRİLMİŞ STATUS FUNKSİYASI (Emoji tamamilə silindi)
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.className = type;
+            
+            // Sadəcə mətn göstərilir, heç bir emoji əlavə edilmir
+            statusDiv.innerHTML = message; 
+
+            statusDiv.style.display = 'block';
+        }
     </script>
 
 </body>
