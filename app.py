@@ -1,99 +1,90 @@
-from flask import Flask, request, jsonify, Response, render_template
-import requests
-import time
+from flask import Flask, render_template, request, jsonify, send_file # send_file İMPORT EDİLDİ
+from flask import Flask, render_template, request, jsonify, send_file
 import os
-from urllib.parse import urlencode
+import uuid
+import logging
+@@ -7,30 +7,20 @@
+# Loglama üçün tənzimləmə
+logging.basicConfig(level=logging.INFO)
 
-app = Flask(__name__)
+# Flask Tətbiqinin İcrası
+app = Flask(__name__, template_folder='templates')
 
-# --------------------------------------------------------------------------------
-# KÖMƏKÇİ FUNKSİYA: TİKTOK VİDEO LİNKİNİ ƏLDƏ ETMƏK (SİZİN KÖHNƏ MƏNTİQİNİZ)
-# --------------------------------------------------------------------------------
-def get_tiktok_final_link(tiktok_url):
-    """
-    ⚠️ DİQQƏT: Bu funksiya HAL HAZIRDA İŞLƏMİR (None qaytarır).
-    Lütfən, aşağıdakı 'return None' sətrinin yerinə sizin KÖHNƏ, İŞLƏYƏN 
-    API sorğunuzu/link əldə etmə məntiqinizi daxil edin!
-    """
-    
-    # SİZİN KÖHNƏ İŞLƏYƏN API KODUNUZU BURAYA YAPIŞDIRIN!
-    
-    return None 
+# Yükləmələrin saxlanılacağı qovluğu təyin et
+DOWNLOAD_FOLDER = 'downloads'
+if not os.path.exists(DOWNLOAD_FOLDER):
+os.makedirs(DOWNLOAD_FOLDER)
 
+# ----------------------------------------------------------------------
+# 1. TEMPLATE ROUTING 
+# ----------------------------------------------------------------------
 
-# --------------------------------------------------------------------------------
-# ENDPOINT 0: ƏSAS SƏHİFƏ
-# --------------------------------------------------------------------------------
 @app.route('/')
 def index():
-    # Flask-ın index.html-i göstərməsini təmin edir
-    return render_template('index.html')
+return render_template('index.html')
 
+# ----------------------------------------------------------------------
+# 2. YÜKLƏMƏ FUNKSİYASI (FİNAL QƏTİ HƏLL: send_file)
+# ----------------------------------------------------------------------
 
-# --------------------------------------------------------------------------------
-# ENDPOINT 1: /yukle (FRONTENDDƏN GƏLƏN SORĞU)
-# --------------------------------------------------------------------------------
-@app.route('/yukle', methods=['POST'])
-def yukle_video():
-    data = request.get_json(silent=True)
-    tiktok_url = data.get('url')
+@app.route('/yukle', methods=['GET', 'POST']) 
+def yukle():
 
-    if not tiktok_url:
-        return jsonify({"success": False, "message": "Link daxil edilməyib"}), 400
+    # Fayl yükləməni başlatmaq üçün POST sorğusu
+    # POST Hissəsi (Yükləmənin Başlanması) - Dəyişmir, sabitdir.
+if request.method == 'POST':
+data = request.get_json()
+url = data.get('url')
+@@ -51,27 +41,19 @@ def yukle():
+}
 
-    try:
-        final_download_url = get_tiktok_final_link(tiktok_url)
-        
-        if not final_download_url:
-             # Əgər link tapılmazsa 404 qaytarırıq (artıq 500 xətası yoxdur)
-             return jsonify({"success": False, "message": "Video linki tapılmadı."}), 404
+try:
+            logging.info(f"Video yüklənmə sorğusu: {url}")
+            
+with YoutubeDL(ydl_opts) as ydl:
+ydl.download([url])
 
-        # KRİTİK HƏLL: Proxy vasitəsilə yükləmə (Android və İcazə xətasını həll edir)
-        encoded_link = urlencode({'link': final_download_url})
-        download_proxy_url = f'/download_proxy?{encoded_link}' 
+            logging.info(f"Video uğurla yükləndi: {filepath}")
 
-        return jsonify({"success": True, "download_url": download_proxy_url })
+            # Uğurlu Halda Yönləndirmə URL-ini göndəririk 
+return jsonify({"success": True, "download_url": request.base_url + "?filename=" + random_filename}), 200
 
-    except Exception as e:
-        app.logger.error(f"Video yükləmə zamanı gözlənilməz xəta: {e}")
-        return jsonify({"success": False, "message": f"Server Xətası: {str(e)}"}), 500
+except Exception as e:
+logging.error(f"Server xətası: {e}")
+            return jsonify({
+                "success": False,
+                "message": f"Daxili server xətası baş verdi. {e}"
+            }), 500
+            return jsonify({"success": False, "message": f"Daxili server xətası baş verdi. {e}"}), 500
 
+finally:
+pass
 
-# --------------------------------------------------------------------------------
-# ENDPOINT 2: /download_proxy (YÜKLƏMƏ UĞURSUZLUĞUNU HƏLL EDİR)
-# --------------------------------------------------------------------------------
-@app.route('/download_proxy')
-def download_proxy():
-    final_url = request.args.get('link')
+    # Faylı göndərmək üçün GET sorğusu (Android DownloadManager üçün kritik)
+    # GET Hissəsi (Faylın Ötürülməsi) - KRİTİK BAŞLIQ DÜZƏLİŞİ
+elif request.method == 'GET':
+filename_uuid = request.args.get('filename')
 
-    if not final_url:
-        return "Yükləmə linki tapılmadı.", 400
+@@ -84,18 +66,19 @@ def yukle():
+return jsonify({"success": False, "message": "Yükləmə faylı artıq silinib və ya tapılmadı."}), 404
 
-    try:
-        # Faylı requests ilə alır və Response ilə ötürürük (Lokal silmə xətası yoxdur)
-        response = requests.get(final_url, stream=True, timeout=30)
-        response.raise_for_status() 
+try:
+            logging.info(f"Fayl ötürülməsi başladıldı: {filepath}")
 
-        # Fayl adı yaratmaq
-        filename = f"tiktok_video_{int(time.time())}.mp4"
+            # --- KRİTİK HƏLL: send_file fayl ötürülməsini və başlıqları stabil edir ---
+            # send_file istifadə edilir
+response = send_file(
+filepath,
+mimetype='video/mp4',
+as_attachment=True,
+download_name='video.mp4' 
+)
 
-        # DÜZGÜN HEADERLƏR: Android DownloadManager üçün vacibdir
-        headers = {
-            "Content-Type": "video/mp4", 
-            "Content-Disposition": f"attachment; filename=\"{filename}\"",
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0" 
-        }
+            # 'Endirmə Uğursuz Oldu' xətasının qarşısını alır
+            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"'
+            # --- KRİTİK BAŞLIQLARIN ƏLAVƏSİ (DownloadManager Uyğunluğu) ---
+            response.headers['Content-Type'] = 'video/mp4' 
+            response.headers['Accept-Ranges'] = 'bytes'        # Faylın hissələrlə yüklənməsinə icazə verir
+            response.headers['Connection'] = 'close'           # Əlaqəni düzgün bağlayır (Android üçün vacibdir)
 
-        # Faylı birbaşa ötürürük
-        return Response(response.iter_content(chunk_size=8192), headers=headers)
-
-    except requests.exceptions.HTTPError as e:
-        return f"Yükləmə linki keçərsizdir: {e.response.status_code}", 404
-    except Exception as e:
-        return f"Proxylama zamanı gözlənilməz xəta: {str(e)}", 500
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000), debug=True)
+return response
