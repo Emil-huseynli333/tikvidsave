@@ -150,9 +150,9 @@
                     if (response.status === 200) {
                         return response.json(); 
                     } else {
-                        // 400/500 xətalarında serverdən JSON mesajı almağa çalışırıq
+                        // Xəta halında cavabı oxuyuruq
                         return response.json().then(data => {
-                            statusMessage.innerHTML = `<span class="error">❌ Server Status ${response.status} Xətası: ${data.message}</span>`;
+                            statusMessage.innerHTML = `<span class="error">❌ Server Status ${response.status} Xətası: ${data.message || 'Gözlənilməz xəta'}</span>`;
                             throw new Error(`Server Status ${response.status}`);
                         }).catch(() => {
                             // JSON parse edilməzsə
@@ -162,27 +162,27 @@
                 })
                 .then(data => {
                     if (data.success && data.download_url) {
-                        // 2. Uğurlu cavab gəldi, indi GET sorğusunu başladırıq
-                        statusMessage.innerHTML = '<span class="success">✅ Yüklənmə tamamlandı. Başqa link daxil edin.</span>';
                         
-                        // Bu, "/yukle?filename=..." ünvanına GET sorğusu göndərir və yükləməni başladır
+                        // DÜZƏLİŞİN QAYNAĞI: Bu, Android tətbiqində yükləməni işə salır.
+                        statusMessage.innerHTML = '<span class="success">✅ Yüklənmə başladı. Bildiriş panelini yoxlayın.</span>';
+                        
+                        // KRİTİK HƏLL: Brauzeri birbaşa linkə yönləndiririk.
                         window.location.href = data.download_url;
                         
                     } else if (data.success === false) {
                         // Serverdən gələn XƏTA mesajını göstəririk
-                         statusMessage.innerHTML = `<span class="error">❌ Xəta: ${data.message}</span>`;
+                        statusMessage.innerHTML = `<span class="error">❌ Xəta: ${data.message}</span>`;
                     }
                 })
                 .catch(error => {
                     yukleButton.disabled = false;
                     console.error('Frontend Xətası:', error);
                     if (!statusMessage.innerHTML.includes("Status")) {
-                         statusMessage.innerHTML = `<span class="error">⚠️ Serverlə əlaqə qurularkən kritik xəta. (Yoxlayın: ${error.message})</span>`;
+                        statusMessage.innerHTML = `<span class="error">⚠️ Serverlə əlaqə qurularkən kritik xəta. (Yoxlayın: ${error.message})</span>`;
                     }
                 });
             });
         });
     </script>
-
 </body>
 </html>
