@@ -11,19 +11,13 @@ app = Flask(__name__)
 # --------------------------------------------------------------------------------
 def get_tiktok_final_link(tiktok_url):
     """
-    ⚠️ DİQQƏT: Bu funksiya serverin işlək olması üçün BURADA OLMALIDIR.
+    ⚠️ DİQQƏT: Bu funksiya HAL HAZIRDA İŞLƏMİR (None qaytarır).
     Lütfən, aşağıdakı 'return None' sətrinin yerinə sizin KÖHNƏ, İŞLƏYƏN 
-    API sorğunuzu/link əldə etmə məntiqinizi (YT-DLP-siz!) daxil edin.
+    API sorğunuzu/link əldə etmə məntiqinizi daxil edin!
     """
     
-    # ----------------------------------------------------------------
     # SİZİN KÖHNƏ İŞLƏYƏN API KODUNUZU BURAYA YAPIŞDIRIN!
-    # Məsələn:
-    # final_url = my_custom_api_call(tiktok_url)
-    # return final_url
-    # ----------------------------------------------------------------
     
-    # Əgər kodu tapmırsınızsa, server işlək olsun deyə müvəqqəti olaraq None qaytarırıq.
     return None 
 
 
@@ -51,7 +45,7 @@ def yukle_video():
         final_download_url = get_tiktok_final_link(tiktok_url)
         
         if not final_download_url:
-             # Eğer link tapılmazsa 404 qaytarırıq (artıq 500 xətası yoxdur)
+             # Əgər link tapılmazsa 404 qaytarırıq (artıq 500 xətası yoxdur)
              return jsonify({"success": False, "message": "Video linki tapılmadı."}), 404
 
         # KRİTİK HƏLL: Proxy vasitəsilə yükləmə (Android və İcazə xətasını həll edir)
@@ -102,7 +96,4 @@ def download_proxy():
 
 
 if __name__ == '__main__':
-    # Flask-ın index.html-i axtarması üçün 'templates' qovluğu tələb olunur.
-    # Lütfən, `index.html` faylını `tiktok_downloader` qovluğunun daxilindəki 
-    # 'templates' adlı qovluğa yerləşdirin.
     app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000), debug=True)
