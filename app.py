@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, make_response
 import os
 import uuid
 import logging
-import io 
+# import io # İstifadə olunmadığı üçün silinə bilər
 from yt_dlp import YoutubeDL, DownloadError
 
 # Loglama üçün tənzimləmə
@@ -23,6 +23,18 @@ if not os.path.exists(DOWNLOAD_FOLDER):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+# --- YENİ MARŞRUTLAR BURADADIR ---
+
+@app.route('/privacy')
+def privacy_policy():
+    """Məxfilik Siyasəti səhifəsini göstərir."""
+    return render_template('privacy.html')
+
+@app.route('/terms')
+def terms_of_service():
+    """İstifadə Şərtləri səhifəsini göstərir."""
+    return render_template('terms.html')
 
 # ----------------------------------------------------------------------
 # 2. YÜKLƏMƏ FUNKSİYASI (FİNAL HƏLL: GET/POST İcazəsi + Sabitlik)
@@ -115,4 +127,5 @@ def yukle():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port) 
+    # host='0.0.0.0' və port=port parametrlərini saxladım
+    app.run(host='0.0.0.0', port=port)
