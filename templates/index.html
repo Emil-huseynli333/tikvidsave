@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="az">
-<head><!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6DER2XC4BK"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6DER2XC4BK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-  gtag('config', 'G-6DER2XC4BK');
-</script>
+      gtag('config', 'G-6DER2XC4BK');
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -24,7 +25,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Kontenti yuxarıdan başlamaq üçün */
+            justify-content: flex-start; 
             min-height: 100vh;
             background-color: #2c2c3e; /* Tünd arxa fon */
             color: #f1f1f1;
@@ -39,11 +40,11 @@
             width: 100%;
             max-width: 450px;
             text-align: center;
-            margin-bottom: 30px; /* Aşağıdakı məzmun üçün boşluq */
+            margin-bottom: 30px; 
         }
 
         h1 {
-            color: #ff5577; /* Vurğulama rəngi */
+            color: #ff5577; 
             margin-bottom: 30px;
             font-size: 1.8em;
         }
@@ -87,8 +88,8 @@
         }
 
         /* DƏYİŞDİRİLMİŞ STATUS RƏNGLƏRİ */
-        .loading { background-color: #4a4a6b; color: #ffeb3b; } /* Mətn rəngi dəyişdirildi */
-        .success { background-color: #4caf4f00; color: #ffffff; } /* Fon şəffafdır */
+        .loading { background-color: #4a4a6b; color: #ffeb3b; } 
+        .success { background-color: #4caf4f00; color: #ffffff; } 
         .error { background-color: #f44336; color: #ffffff; }
         
         /* ------------------------------------------------ */
@@ -100,7 +101,7 @@
             margin: 50px auto;
             padding: 20px;
             color: #f1f1f1;
-            background: #2a2a47; /* Əsas formanın fonundan bir az tünd */
+            background: #2a2a47; 
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             width: 90%;
@@ -198,18 +199,19 @@
 
     <footer class="footer-content">
         <p>
-            &copy; 2024 TikTok MP4 Yükləyici. Bütün hüquqlar qorunur. | 
-            <a href="privacy.html">Gizlilik Siyasəti</a> | 
-            <a href="terms.html">İstifadə Şərtləri</a>
+            <a href="/privacy" style="color: #ff5577; text-decoration: none;">Məxfilik Siyasəti</a> | 
+            <a href="/terms" style="color: #ff5577; text-decoration: none;">İstifadə Şərtləri</a>
         </p>
+        <p>&copy; 2025 TikTok MP4 Yükləyici. Bütün hüquqlar qorunur.</p>
     </footer>
+    
 </div>
 <script>
         document.getElementById('download-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const url = document.getElementById('tiktok-url').value;
             
-            updateStatus('Yükləmə hazırlanır, zəhmət olmasa gözləyin...', 'loading'); // Emoji silindi
+            updateStatus('Yükləmə hazırlanır, zəhmət olmasa gözləyin...', 'loading'); 
 
             fetch('/yukle', {
                 method: 'POST',
@@ -234,28 +236,25 @@
                     // Yükləməni başlat
                     const link = document.createElement('a');
                     link.href = data.download_url;
-                    link.target = '_blank'; // Yeni tabda açır (daha təmiz yükləmə)
+                    link.target = '_blank'; 
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                     
-                    updateStatus('Yüklənmə tamamlandı. Başqa link daxil edin.', 'success'); // Emoji silindi
+                    updateStatus('Yüklənmə tamamlandı. Başqa link daxil edin.', 'success'); 
                 } else {
                     throw new Error(data.message || 'Gözlənilməz xəta baş verdi.');
                 }
             })
             .catch(error => {
-                updateStatus(error.message, 'error'); // Emoji silindi
+                updateStatus(error.message, 'error'); 
                 console.error('Error:', error);
             });
         });
 
-        // DƏYİŞDİRİLMİŞ STATUS FUNKSİYASI (Emoji tamamilə silindi)
         function updateStatus(message, type) {
             const statusDiv = document.getElementById('status-message');
             statusDiv.className = type;
-            
-            // Sadəcə mətn göstərilir, heç bir emoji əlavə edilmir
             statusDiv.innerHTML = message; 
 
             statusDiv.style.display = 'block';
