@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, make_response, send_from_directory # send_from_directory əlavə olundu
 import os
 import uuid
 import logging
-# import io # İstifadə olunmadığı üçün silinə bilər
 from yt_dlp import YoutubeDL, DownloadError
 
 # Loglama üçün tənzimləmə
@@ -17,14 +16,23 @@ if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
 
 # ----------------------------------------------------------------------
+# ADS.TXT ROUTING (YENİ BLOK)
+# ----------------------------------------------------------------------
+
+@app.route('/ads.txt')
+def serve_ads_txt():
+    """AdSense tələb olunan ads.txt faylını təqdim edir."""
+    # Faylın APP.PY ilə eyni kök qovluğunda olduğunu fərz edirik
+    root_dir = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(root_dir, 'ads.txt')
+
+# ----------------------------------------------------------------------
 # 1. TEMPLATE ROUTING 
 # ----------------------------------------------------------------------
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
-# --- YENİ MARŞRUTLAR BURADADIR ---
 
 @app.route('/privacy')
 def privacy_policy():
@@ -37,7 +45,7 @@ def terms_of_service():
     return render_template('terms.html')
 
 # ----------------------------------------------------------------------
-# 2. YÜKLƏMƏ FUNKSİYASI (FİNAL HƏLL: GET/POST İcazəsi + Sabitlik)
+# 2. YÜKLƏMƏ FUNKSİYASI (MÖVCUD)
 # ----------------------------------------------------------------------
 
 @app.route('/yukle', methods=['GET', 'POST']) 
@@ -70,7 +78,6 @@ def yukle():
 
             logging.info(f"Video uğurla yükləndi: {filepath}")
             
-            # Uğurlu Halda Yönləndirmə URL-ini göndəririk (JavaScript bunu gözləyir)
             return jsonify({"success": True, "download_url": request.base_url + "?filename=" + random_filename}), 200
             
         except Exception as e:
@@ -81,10 +88,9 @@ def yukle():
             }), 500
             
         finally:
-            # Fayl hələlik silinmir, GET müraciətini gözləyir.
             pass
 
-    # Faylı göndərmək üçün GET sorğusu (window.location.href tərəfindən gəlir)
+    # Faylı göndərmək üçün GET sorğusu
     elif request.method == 'GET':
         filename_uuid = request.args.get('filename')
         if not filename_uuid:
@@ -103,9 +109,8 @@ def yukle():
                 
             response = make_response(video_data)
             
-            # Başlıqlar: Yükləmə Uğursuz Oldu xətasını həll edir
             response.headers['Content-Type'] = 'video/mp4'
-            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"' # Sadə fayl adı
+            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"' 
             response.headers['Content-Length'] = file_size
             
             if 'Transfer-Encoding' in response.headers:
@@ -117,7 +122,6 @@ def yukle():
              return jsonify({"success": False, "message": f"Fayl ötürülməsi zamanı xəta: {e}"}), 500
              
         finally:
-            # Fayl göndərildikdən sonra mütləq silinir
             if os.path.exists(filepath):
                 os.remove(filepath)
                 logging.info(f"Fayl silindi: {filepath}")
@@ -127,5 +131,4 @@ def yukle():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    # host='0.0.0.0' və port=port parametrlərini saxladım
     app.run(host='0.0.0.0', port=port)
