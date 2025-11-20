@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <!-- Bütün HEAD məzmunu (AdSense, GA4, Meta teqlər) olduğu kimi qalır -->
+    <!-- AdSense və GA4 təsdiq kodları -->
     <meta name="google-adsense-account" content="ca-pub-9598818157115502">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9598818157115502"
-          crossorigin="anonymous"></script>
+        crossorigin="anonymous"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6DER2XC4BK"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-6DER2XC4BK');
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-6DER2XC4BK');
     </script>
+    <!-- Əsas Meta Teqlər -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon.png" type="image/png"> 
     <title>TikTok MP4 Yükləyici</title>
-    <!-- Stil kodları olduğu kimi qalır -->
+    <!-- Font Awesome Icon Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Stil Kodları -->
     <style>
-        /* ... Mövcud stil kodlarınız ... */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -132,7 +135,6 @@
             margin-bottom: 10px;
         }
         
-        /* ƏLAVƏ EDİLMİŞ KONTAKT BLOKU ÜÇÜN STİL */
         .contact-info {
             margin-top: 30px;
             padding: 15px;
@@ -151,8 +153,7 @@
             color: #ffffff;
             text-decoration: underline;
         }
-        /* KONTAKT STİLİNİN SONU */
-
+        
         .footer-content {
             text-align: center;
             margin-top: 40px;
@@ -171,7 +172,8 @@
 <body>
 
     <div class="container">
-        <h1><i class="fas fa-magic"></i> TikTok MP4 Yükləyici</h1>
+        <!-- Font Awesome istifadə edilərək ikon əlavə edildi -->
+        <h1><i class="fas fa-video"></i> TikTok MP4 Yükləyici</h1>
         
         <form id="download-form">
             <input type="url" id="tiktok-url" placeholder="TikTok linkini bura yapışdırın" required>
@@ -224,16 +226,12 @@
         
     </section>
 
-    <!-- ❗ KONTAKT BLOKU BAŞLANGICI ❗ -->
     <div class="contact-info">
         <h3>Bizimlə Əlaqə</h3>
         <p>Hər hansı bir sualınız, texniki probleminiz və ya təklifiniz varsa, bizimlə birbaşa əlaqə qura bilərsiniz:</p>
-        <p>Email: <a href="mailto:ttvideoyukleme.contact@gmail.com
-?subject=TikTok%20Yükləyici%20Haqqında%20Sual" style="font-size: 1.1em;">ttvideoyukleme.contact@gmail.com
-</a></p>
+        <p>Email: <a href="mailto:ttvideoyukleme.contact@gmail.com?subject=TikTok%20Yükləyici%20Haqqında%20Sual" style="font-size: 1.1em;">ttvideoyukleme.contact@gmail.com</a></p>
         <p style="font-size: 0.85em; color: #aaaaaa;">(Email ünvanına toxunun, avtomatik olaraq mesaj göndərmə proqramınız açılacaq.)</p>
     </div>
-    <!-- KONTAKT BLOKU SONU -->
 
     <footer class="footer-content">
         <p>
@@ -246,14 +244,18 @@
     
 </div>
 <script>
+    // Yükləmə funksiyası
     document.getElementById('download-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const url = document.getElementById('tiktok-url').value;
         const statusDiv = document.getElementById('status-message');
+        const submitButton = document.querySelector('button[type="submit"]');
 
+        submitButton.disabled = true; // Düyməni deaktiv et
+        
         statusDiv.style.display = 'block';
         statusDiv.className = 'loading';
-        statusDiv.textContent = 'Video emal edilir... Zəhmət olmasa gözləyin.';
+        statusDiv.textContent = 'Video emal edilir... Zəhmət olmasa gözləyin. (Bu, bir neçə saniyə çəkə bilər)';
 
         try {
             const response = await fetch('/api/download', {
@@ -268,16 +270,20 @@
 
             if (data.success) {
                 statusDiv.className = 'success';
-                statusDiv.innerHTML = `<strong>Uğurlu!</strong> Video yükləməyə hazırdır. <a href="${data.download_url}" download="${data.title}.mp4" style="color: #ffffff; text-decoration: underline;">Buradan yükləyin</a>.`;
+                // Backend-dən gələn download_url ilə yükləmə linkini yaradırıq.
+                // data.title fayl adının təmiz versiyasıdır.
+                statusDiv.innerHTML = `<strong>Uğurlu!</strong> Video yükləməyə hazırdır. <a href="${data.download_url}" target="_blank" download="${data.title}.mp4" style="color: #ff5577; text-decoration: underline;">Buradan yükləyin</a>.`;
             } else {
                 statusDiv.className = 'error';
-                statusDiv.textContent = data.message || 'Xəta: Yükləmə mümkün olmadı.';
+                statusDiv.textContent = data.message || 'Xəta: Yükləmə mümkün olmadı. Server əlaqəsini yoxlayın.';
             }
 
         } catch (error) {
             console.error('Fetch Error:', error);
             statusDiv.className = 'error';
-            statusDiv.textContent = 'Gözlənilməz xəta baş verdi. Serveri yoxlayın.';
+            statusDiv.textContent = 'Gözlənilməz xəta baş verdi. Server əlaqəsini yoxlayın.';
+        } finally {
+             submitButton.disabled = false; // Proses bitdikdən sonra düyməni aktiv et
         }
     });
 </script>
