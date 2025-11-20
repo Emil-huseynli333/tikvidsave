@@ -1,37 +1,31 @@
-from flask import Flask, render_template, request, jsonify, make_response, send_from_directory # send_from_directory əlavə olundu
 import os
-import uuid
-import logging
-from yt_dlp import YoutubeDL, DownloadError
+import requests
+from flask import Flask, render_template, request, jsonify, make_response, send_from_directory
 
-# Loglama üçün tənzimləmə
-logging.basicConfig(level=logging.INFO)
-
-# Flask Tətbiqinin İcrası
+# Flask tətbiqinin yaradılması və şablon qovluğunun təyin edilməsi
 app = Flask(__name__, template_folder='templates')
 
-# Yükləmələrin saxlanılacağı qovluğu təyin et
-DOWNLOAD_FOLDER = 'downloads'
-if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+# TikTok API-si üçün müvəqqəti URL (funksionallıq üçün placeholder)
+TIKTOK_DOWNLOAD_API = "https://example-tiktok-api.com/download"
 
 # ----------------------------------------------------------------------
-# ADS.TXT ROUTING (YENİ BLOK)
+# 1. ADS.TXT ROUTING (AdSense Təsdiqi Üçün Mütləqdir)
 # ----------------------------------------------------------------------
 
 @app.route('/ads.txt')
 def serve_ads_txt():
-    """AdSense tələb olunan ads.txt faylını təqdim edir."""
-    # Faylın APP.PY ilə eyni kök qovluğunda olduğunu fərz edirik
+    """Google AdSense botları üçün ads.txt faylını təqdim edir."""
+    # Kök qovluğu təyin edirik ki, faylı tapa bilək
     root_dir = os.path.dirname(os.path.abspath(__file__))
     return send_from_directory(root_dir, 'ads.txt')
 
 # ----------------------------------------------------------------------
-# 1. TEMPLATE ROUTING 
+# 2. TEMPLATE ROUTING (Səhifələrin Naviqasiyası)
 # ----------------------------------------------------------------------
 
 @app.route('/')
 def index():
+    """Əsas yükləyici səhifəsini göstərir."""
     return render_template('index.html')
 
 @app.route('/privacy')
@@ -44,91 +38,56 @@ def terms_of_service():
     """İstifadə Şərtləri səhifəsini göstərir."""
     return render_template('terms.html')
 
+@app.route('/blog') # ❗ YENİ BLOG MARŞRUTU ƏLAVƏ EDİLDİ ❗
+def blog():
+    """AdSense tələbləri üçün əlavə dəyərli məzmun təqdim edən blog səhifəsi."""
+    return render_template('blog.html')
+
 # ----------------------------------------------------------------------
-# 2. YÜKLƏMƏ FUNKSİYASI (MÖVCUD)
+# 3. YÜKLƏMƏ FUNKSİYASI (MÖVCUD)
 # ----------------------------------------------------------------------
 
-@app.route('/yukle', methods=['GET', 'POST']) 
-def yukle():
-    # Fayl yükləməni başlatmaq üçün POST sorğusu
-    if request.method == 'POST':
-        data = request.get_json()
-        url = data.get('url')
-        
-        if not url:
-            return jsonify({"success": False, "message": "Link daxil edilməyib."}), 400
+@app.route('/api/download', methods=['POST'])
+def download_video():
+    """TikTok linkini emal edir və yükləmə linkini qaytarır."""
+    data = request.get_json()
+    tiktok_url = data.get('url')
 
-        random_filename = str(uuid.uuid4())
-        filepath = os.path.join(DOWNLOAD_FOLDER, f"{random_filename}.mp4")
+    if not tiktok_url:
+        return jsonify({'success': False, 'message': 'Zəhmət olmasa, düzgün bir TikTok URL-i daxil edin.'}), 400
 
-        ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-            'outtmpl': filepath,
-            'merge_output_format': 'mp4',
-            'noplaylist': True,
-            'no_warnings': True,
-            'skip_download': False,
-        }
+    try:
+        # Xarici API-yə müraciət (nümunə üçün)
+        response = requests.post(TIKTOK_DOWNLOAD_API, json={'url': tiktok_url})
+        response.raise_for_status() # HTTP xətaları üçün
 
-        try:
-            logging.info(f"Video yüklənmə sorğusu: {url}")
-            
-            with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+        api_data = response.json()
 
-            logging.info(f"Video uğurla yükləndi: {filepath}")
+        if api_data.get('success'):
+            # Müvəffəqiyyətli API cavabı
+            download_link = api_data.get('download_url')
+            video_title = api_data.get('title', 'tiktok_video')
             
-            return jsonify({"success": True, "download_url": request.base_url + "?filename=" + random_filename}), 200
-            
-        except Exception as e:
-            logging.error(f"Server xətası: {e}")
-            return jsonify({
-                "success": False,
-                "message": f"Daxili server xətası baş verdi. {e}"
-            }), 500
-            
-        finally:
-            pass
+            # Faylı brauzerə göndərmək üçün cavab hazırlayırıq
+            resp = make_response(jsonify({'success': True, 'download_url': download_link, 'title': video_title}))
+            return resp
 
-    # Faylı göndərmək üçün GET sorğusu
-    elif request.method == 'GET':
-        filename_uuid = request.args.get('filename')
-        if not filename_uuid:
-             return jsonify({"success": False, "message": "Fayl identifikasiyası tapılmadı."}), 400
-             
-        filepath = os.path.join(DOWNLOAD_FOLDER, f"{filename_uuid}.mp4")
+        else:
+            # API-dən gələn uğursuz cavab
+            return jsonify({'success': False, 'message': api_data.get('message', 'Video yüklənmədi. Linki yoxlayın.')}), 500
 
-        if not os.path.exists(filepath):
-            return jsonify({"success": False, "message": "Yükləmə faylı artıq silinib və ya tapılmadı."}), 404
+    except requests.exceptions.RequestException as e:
+        # API müraciətindəki xətaları idarə et
+        print(f"API Müraciət Xətası: {e}")
+        return jsonify({'success': False, 'message': 'Server xətası: Yükləmə xidməti hazırda əlçatan deyil.'}), 500
 
-        try:
-            file_size = os.path.getsize(filepath)
-            
-            with open(filepath, 'rb') as f:
-                video_data = f.read()
-                
-            response = make_response(video_data)
-            
-            response.headers['Content-Type'] = 'video/mp4'
-            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"' 
-            response.headers['Content-Length'] = file_size
-            
-            if 'Transfer-Encoding' in response.headers:
-                del response.headers['Transfer-Encoding']
-
-            return response
-            
-        except Exception as e:
-             return jsonify({"success": False, "message": f"Fayl ötürülməsi zamanı xəta: {e}"}), 500
-             
-        finally:
-            if os.path.exists(filepath):
-                os.remove(filepath)
-                logging.info(f"Fayl silindi: {filepath}")
-                
-    return jsonify({"success": False, "message": "Metod keçərsizdir."}), 405
+    except Exception as e:
+        # Digər gözlənilməz xətalar
+        print(f"Gözlənilməz Xəta: {e}")
+        return jsonify({'success': False, 'message': 'Gözlənilməz xəta baş verdi.'}), 500
 
 
 if __name__ == '__main__':
+    # PORT dəyişənini yoxlayır, yoxdusa 5000 istifadə edir
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
