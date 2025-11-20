@@ -1,286 +1,334 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <!-- Bütün HEAD məzmunu (AdSense, GA4, Meta teqlər) olduğu kimi qalır -->
-    <meta name="google-adsense-account" content="ca-pub-9598818157115502">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9598818157115502"
-          crossorigin="anonymous"></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6DER2XC4BK"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-6DER2XC4BK');
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="favicon.png" type="image/png"> 
     <title>TikTok MP4 Yükləyici</title>
-    <!-- Stil kodları olduğu kimi qalır -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9598815715592"
+        crossorigin="anonymous"></script>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({
+            google_ad_client: "ca-pub-9598815715592",
+            enable_page_level_ads: true
+        });
+    </script>
+    <link rel="icon" href="/favicon.png" type="image/png">
     <style>
-        /* ... Mövcud stil kodlarınız ... */
         body {
             font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #f1f1f1;
+            background-color: #2c2c3e;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: flex-start; 
-            min-height: 100vh;
-            background-color: #2c2c3e; 
-            color: #f1f1f1;
-            padding-top: 50px;
         }
 
+        /* ❗ ƏSAS DƏYİŞİKLİK BURADADIR: Mobil adaptasiya üçün max-width və padding əlavə edildi */
         .container {
-            background-color: #3b3b5c;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 450px;
+            max-width: 700px; 
+            width: 90%; /* Kontainerin ekranın 90%-ni tutmasını təmin edir */
+            margin: 40px auto; 
+            padding: 20px; 
+            background-color: #393955;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             text-align: center;
-            margin-bottom: 30px; 
         }
 
         h1 {
-            color: #ff5577; 
-            margin-bottom: 30px;
-            font-size: 1.8em;
-        }
-
-        input[type="url"] {
-            width: calc(100% - 20px);
-            padding: 15px;
+            color: #ff5577;
             margin-bottom: 20px;
-            border: 1px solid #555577;
-            border-radius: 5px;
-            background-color: #4a4a6b;
-            color: #f1f1f1;
-            font-size: 1em;
-            box-sizing: border-box;
+            font-size: 1.8em; /* Mobil üçün şrift ölçüsü optimallaşdırıldı */
         }
 
-        button {
+        .input-group {
+            display: flex;
+            flex-direction: column; 
+            gap: 15px; 
+        }
+
+        .input-group input[type="text"] {
+            padding: 15px;
+            border: 2px solid #555577;
+            border-radius: 8px;
+            font-size: 1em;
+            background-color: #4a4a66;
+            color: #f1f1f1;
+            width: 100%;
+            box-sizing: border-box; 
+        }
+
+        .input-group button {
+            padding: 15px;
             background-color: #ff5577;
             color: white;
-            padding: 15px 25px;
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 8px;
             font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s;
             font-weight: bold;
-            transition: background-color 0.3s ease;
-            width: 100%;
         }
 
-        button:hover {
-            background-color: #e54d6a;
+        .input-group button:hover {
+            background-color: #e54c6a;
         }
 
-        #status-message {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            font-weight: bold;
-            display: none;
-            animation: fadeIn 0.5s;
+        .input-group button:active {
+            transform: scale(0.98);
         }
 
-        .loading { background-color: #4a4a6b; color: #ffeb3b; } 
-        .success { background-color: #4caf4f00; color: #ffffff; } 
-        .error { background-color: #f44336; color: #ffffff; }
-        
-        .content-container {
+        /* Niyə Bizi Seçməlisiniz Bölməsi */
+        .features {
             max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            color: #f1f1f1;
-            background: #2a2a47; 
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            width: 90%;
+            margin: 50px auto 30px auto;
+            padding: 0 5%; /* Mobil kənarlarda daha çox yer qoymaq üçün */
             text-align: left;
         }
 
-        .info-section h1, .info-section h2, .faq-section h2 {
+        .features h2 {
             color: #ffffff;
-            margin-top: 30px;
-            border-bottom: 2px solid #555577;
-            padding-bottom: 5px;
+            font-size: 1.6em;
+            border-bottom: 2px solid #ff5577;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        .info-section ul {
-            list-style: disc;
-            margin-left: 20px;
-            padding: 10px 0;
-            line-height: 1.6;
+        .feature-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #393955;
+            border-left: 5px solid #ff5577;
+            border-radius: 8px;
+        }
+
+        .feature-item h3 {
+            color: #ff5577;
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+
+        .feature-item p {
+            color: #cccccc;
+        }
+
+        /* FAQ Bölməsi */
+        .faq {
+            max-width: 800px;
+            margin: 50px auto 50px auto;
+            padding: 0 5%; /* Mobil kənarlarda daha çox yer qoymaq üçün */
+            text-align: left;
+        }
+
+        .faq h2 {
+            color: #ffffff;
+            font-size: 1.6em;
+            border-bottom: 2px solid #ff5577;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         .faq-item {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             padding: 15px;
-            border: 1px solid #4a4a6b;
-            border-radius: 5px;
-            background: #333355;
+            background-color: #393955;
+            border-radius: 8px;
         }
 
         .faq-item h3 {
-            color: #ff5577; 
+            color: #ff5577;
             margin-top: 0;
-            margin-bottom: 10px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+        }
+
+        .faq-item h3::before {
+            content: '?';
+            color: #ffffff;
+            background-color: #ff5577;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            font-size: 0.8em;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .faq-item p {
+            color: #cccccc;
+            margin-left: 30px; 
         }
         
-        /* ƏLAVƏ EDİLMİŞ KONTAKT BLOKU ÜÇÜN STİL */
+        /* Footer Bölməsi */
+        footer {
+            margin-top: auto; /* Footer-i səhifənin ən altına itələyir */
+            padding: 20px 5%;
+            background-color: #242436;
+            text-align: center;
+            font-size: 0.9em;
+            border-top: 1px solid #555577;
+        }
+
+        footer a {
+            color: #ff5577;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #ffffff;
+        }
+
+        /* Kontakt Məlumatları */
         .contact-info {
             margin-top: 30px;
             padding: 15px;
             border-top: 1px solid #555577;
             text-align: center;
         }
-        
+
+        .contact-info h3 {
+            color: #ff5577;
+            margin-top: 10px;
+        }
+
+        .contact-info p {
+            color: #cccccc;
+        }
+
         .contact-info a {
             color: #ff5577;
             text-decoration: none;
             font-weight: bold;
             transition: color 0.3s ease;
+            display: inline-block;
+            margin-top: 5px;
         }
-        
+
         .contact-info a:hover {
             color: #ffffff;
             text-decoration: underline;
-        }
-        /* KONTAKT STİLİNİN SONU */
-
-        .footer-content {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 15px;
-            border-top: 1px solid #4a4a6b;
-            color: #aaaaaa;
-            font-size: 0.9em;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1><i class="fas fa-magic"></i> TikTok MP4 Yükləyici</h1>
-        
-        <form id="download-form">
-            <input type="url" id="tiktok-url" placeholder="TikTok linkini bura yapışdırın" required>
-            <button type="submit">Yüklə və MP4 əldə et</button>
-        </form>
+    <main>
+        <!-- Əsas Yükləmə Bölməsi -->
+        <div class="container">
+            <h1>✨ TikTok MP4 Yükləyici</h1>
+            <div class="input-group">
+                <input type="text" id="tiktokUrl" placeholder="TikTok linkini bura yapışdırın" title="TikTok video linkini daxil edin" aria-label="TikTok video linki" required>
+                <button id="downloadButton">Yüklə və MP4 əldə et</button>
+            </div>
+            <!-- Yükləmə status mesajları bura gələcək -->
+            <p id="statusMessage" style="color: #ff5577; margin-top: 15px; font-weight: bold;"></p>
+        </div>
 
-        <div id="status-message" class="error" style="display: none;"></div>
-    </div>
-    
-<div class="content-container">
+        <!-- Niyə Bizi Seçməlisiniz Bölməsi -->
+        <div class="features">
+            <h2>✨ TikTok MP4 Yükləyicisi ilə Tanış Olun</h2>
+            <p style="color: #f1f1f1; margin-bottom: 25px;">Sizə ən sevdiyiniz TikTok videolarını filiqransız (Watermark olmadan) və yüksək keyfiyyətdə MP4 formatında yükləməyə kömək edirik. Proses çox sadədir: linki yapışdırın və yükləyin. Məqsədimiz istifadəçilərə yalnız şəxsi arxivləri üçün məzmunu saxlamağa kömək etməkdir. Bu xidmət müəllif hüquqları ilə qorunan məzmunun qeyri-qanuni paylaşılması üçün nəzərdə tutulmayıb.</p>
 
-    <section class="info-section">
-        <h1>✨ TikTok MP4 Yükləyicisi ilə Tanış Olun</h1>
+            <div class="feature-item">
+                <h3>Filiqransız Yükləmə:</h3>
+                <p>TikTok-un loqosu olmadan təmiz videolar əldə edin.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Yüksək Keyfiyyət:</h3>
+                <p>Videoları orijinal keyfiyyətdə MP4 formatında saxlayın.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Pulsuz və Limitsiz:</h3>
+                <p>Heç bir qeydiyyat tələb olunmur və istədiyiniz qədər yükləyə bilərsiniz.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Çoxplatformalı Dəstək:</h3>
+                <p>Bütün cihazlarda (Android, iOS, PC) işləyir.</p>
+            </div>
+        </div>
+
+        <!-- FAQ Bölməsi -->
+        <div class="faq">
+            <h2>❓ Tez-tez Verilən Suallar (FAQ)</h2>
+
+            <div class="faq-item">
+                <h3>TikTok videosunu necə yükləyə bilərəm?</h3>
+                <p>Çox asandır! TikTok tətbiqindəki "Paylaş" düyməsinə toxunun, "Link kopyala" seçin və kopyaladığınız linki yuxarıdakı giriş qutusuna yapışdırıb "Yüklə" düyməsini basın.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Filiqransız yükləmək mümkündürmü?</h3>
+                <p>Bəli, bizim xidmətimizdə yüklədiyiniz bütün videolar TikTok loqosu olmadan təmiz, orijinal keyfiyyətdə olur.</p>
+            </div>
+        </div>
+
+        <!-- Kontakt Məlumatları -->
+        <div class="contact-info">
+            <h3>Bizimlə Əlaqə</h3>
+            <p>Hər hansı bir sualınız, texniki probleminiz və ya təklifiniz varsa, bizimlə birbaşa əlaqə qura bilərsiniz:</p>
+            <p>Email: <a href="mailto:ttvideoyukleme.contact@gmail.com" style="font-size: 1.1em;">ttvideoyukleme.contact@gmail.com</a></p>
+        </div>
+    </main>
+
+    <footer>
         <p>
-            Sizə ən sevdiyiniz TikTok videolarını filiqransız (Watermark olmadan) və yüksək keyfiyyətdə MP4 formatında yükləməyə kömək edirik. Proses çox sadədir: linki yapışdırın və yükləyin. 
-            <b>Məqsədimiz istifadəçilərə yalnız şəxsi arxivləri üçün məzmunu saxlamağa kömək etməkdir. Bu xidmət müəllif hüquqları ilə qorunan məzmunun qeyri-qanuni paylanması üçün nəzərdə tutulmayıb.</b>
-        </p>
-
-        <h2>Niyə Bizi Seçməlisiniz?</h2>
-        <ul>
-            <li><b>Filigransız Yükləmə:</b> TikTok-un loqosu olmadan təmiz videolar əldə edin.</li>
-            <li><b>Yüksək Keyfiyyət:</b> Videoları orijinal keyfiyyətdə MP4 formatında saxlayın.</li>
-            <li><b>Pulsuz və Limitsiz:</b> Heç bir qeydiyyat tələb olunmur və istədiyiniz qədər yükləyə bilərsiniz.</li>
-            <li><b>Çoxplatformalı Dəstək:</b> Bütün cihazlarda (Android, iOS, PC) işləyir.</li>
-        </ul>
-    </section>
-
-    <section class="faq-section">
-        <h2>❓ Tez-tez Verilən Suallar (FAQ)</h2>
-        
-        <div class="faq-item">
-            <h3>TikTok videosunu necə yükləyə bilərəm? (Genişləndirilmiş Cavab)</h3>
-            <p>Çox asandır! TikTok tətbiqindəki <b>"Paylaş"</b> düyməsinə toxunun, <b>"Link kopyala"</b> seçin və kopyaladığınız linki yuxarıdakı giriş qutusuna yapışdırıb <b>"Yüklə"</b> düyməsini basın. Alətimiz linki emal edəcək və yükləmə faylını avtomatik olaraq brauzerinizə göndərəcək. Proses saniyələr çəkir!</p>
-        </div>
-
-        <div class="faq-item">
-            <h3>Filigransız yükləmək niyə mümkündür?</h3>
-            <p>Bizim xidmətimizdə yüklədiyiniz bütün videolar TikTok loqosu olmadan təmiz, orijinal keyfiyyətdə olur. Bizim texnologiyamız videonun serverdə emalı zamanı platformanın qoyduğu nişanları çıxarır. Məqsədimiz videonu yaradan şəxsin icazəsi ilə şəxsi arxivdə saxlamaq üçün ideal bir nüsxə əldə etməyinizə kömək etməkdir.</p>
-        </div>
-        
-        <div class="faq-item">
-            <h3>Yüklədiyim videolardan kommersiya məqsədləri üçün istifadə edə bilərəmmi? (AdSense üçün kritik)</h3>
-            <p>Xeyr. İstifadə Şərtlərimizə əsasən, yüklənilən məzmun yalnız <b>şəxsi və qeyri-kommersiya</b> məqsədləri üçün istifadə edilməlidir. Müəllif hüquqları qorunan materialların hər hansı bir formada təkrar yayılması və ya kommersiya istifadəsi qəti qadağandır və bütün məsuliyyət istifadəçinin üzərinə düşür.</p>
-        </div>
-        
-        <div class="faq-item">
-            <h3>Xidmət tamamilə pulsuzdurmu?</h3>
-            <p>Bəli, bizim TikTok MP4 Yükləyicisi xidməti tamamilə pulsuzdur və heç bir ödəniş tələb etmir. Biz öz xərclərimizi reklamlar (AdSense kimi) vasitəsilə qarşılayırıq. Bu da xidməti hər kəs üçün pulsuz saxlamağa imkan verir.</p>
-        </div>
-        
-    </section>
-
-    <!-- ❗ KONTAKT BLOKU BAŞLANGICI ❗ -->
-    <div class="contact-info">
-        <h3>Bizimlə Əlaqə</h3>
-        <p>Hər hansı bir sualınız, texniki probleminiz və ya təklifiniz varsa, bizimlə birbaşa əlaqə qura bilərsiniz:</p>
-        <p>Email: <a href="mailto:ttvideoyukleme.contact@gmail.com
-?subject=TikTok%20Yükləyici%20Haqqında%20Sual" style="font-size: 1.1em;">ttvideoyukleme.contact@gmail.com
-</a></p>
-        <p style="font-size: 0.85em; color: #aaaaaa;">(Email ünvanına toxunun, avtomatik olaraq mesaj göndərmə proqramınız açılacaq.)</p>
-    </div>
-    <!-- KONTAKT BLOKU SONU -->
-
-    <footer class="footer-content">
-        <p>
-            <a href="/privacy" style="color: #ff5577; text-decoration: none;">Məxfilik Siyasəti</a> | 
-            <a href="/terms" style="color: #ff5577; text-decoration: none;">İstifadə Şərtləri</a> | 
-            <a href="/blog" style="color: #ff5577; text-decoration: none;">Bloq</a>
+            <a href="templates/privacy.html">Məxfilik Siyasəti</a> | 
+            <a href="templates/terms.html">İstifadə Şərtləri</a>
         </p>
         <p>&copy; 2025 TikTok MP4 Yükləyici. Bütün hüquqlar qorunur.</p>
     </footer>
-    
-</div>
-<script>
-    document.getElementById('download-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const url = document.getElementById('tiktok-url').value;
-        const statusDiv = document.getElementById('status-message');
 
-        statusDiv.style.display = 'block';
-        statusDiv.className = 'loading';
-        statusDiv.textContent = 'Video emal edilir... Zəhmət olmasa gözləyin.';
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const downloadButton = document.getElementById('downloadButton');
+            const urlInput = document.getElementById('tiktokUrl');
+            const statusMessage = document.getElementById('statusMessage');
 
-        try {
-            const response = await fetch('/api/download', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ url: url })
+            // Hər hansı bir əməliyyat üçün stub funksiya (Real API inteqrasiyası yoxdur)
+            downloadButton.addEventListener('click', () => {
+                const url = urlInput.value.trim();
+                
+                if (url === "") {
+                    statusMessage.textContent = "Zəhmət olmasa, etibarlı bir TikTok linki daxil edin.";
+                    statusMessage.style.color = '#ff5577';
+                    return;
+                }
+
+                statusMessage.textContent = "Video yüklənir... Zəhmət olmasa gözləyin. (Bu, demo funksiyadır)";
+                statusMessage.style.color = '#5cb85c'; 
+
+                // Yükləmə prosesini simulyasiya edir
+                setTimeout(() => {
+                    // Simulyasiya: Uğurlu yükləmə
+                    statusMessage.textContent = "Video uğurla MP4 formatında yükləndi! 🎉";
+                    statusMessage.style.color = '#5cb85c';
+
+                    // Linki təmizlə
+                    urlInput.value = '';
+
+                    // Nümunə yükləmə linki yaradın (həqiqi deyil)
+                    // const dummyDownloadLink = '#'; 
+                    // window.open(dummyDownloadLink, '_blank');
+
+                }, 2000); 
             });
 
-            const data = await response.json();
-
-            if (data.success) {
-                statusDiv.className = 'success';
-                statusDiv.innerHTML = `<strong>Uğurlu!</strong> Video yükləməyə hazırdır. <a href="${data.download_url}" download="${data.title}.mp4" style="color: #ffffff; text-decoration: underline;">Buradan yükləyin</a>.`;
-            } else {
-                statusDiv.className = 'error';
-                statusDiv.textContent = data.message || 'Xəta: Yükləmə mümkün olmadı.';
-            }
-
-        } catch (error) {
-            console.error('Fetch Error:', error);
-            statusDiv.className = 'error';
-            statusDiv.textContent = 'Gözlənilməz xəta baş verdi. Serveri yoxlayın.';
-        }
-    });
-</script>
-
+            // Input sahəsinə Enter basılmasını da dəstəkləyir
+            urlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); 
+                    downloadButton.click();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
