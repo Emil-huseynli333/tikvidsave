@@ -1,131 +1,115 @@
-from flask import Flask, render_template, request, jsonify, make_response
 import os
-import uuid
-import logging
-# import io # İstifadə olunmadığı üçün silinə bilər
-from yt_dlp import YoutubeDL, DownloadError
+import time
+import requests
+import yt_dlp # Modulun düzgün idxalı: tire (-) əvəzinə alt xətt (_) istifadə olunur
+from flask import Flask, request, jsonify, render_template
+from werkzeug.utils import secure_filename
 
-# Loglama üçün tənzimləmə
-logging.basicConfig(level=logging.INFO)
-
-# Flask Tətbiqinin İcrası
+# Flask tətbiqinin yaradılması
+# 'templates' qovluğu Render-də HTML fayllarını tapmaq üçün vacibdir
 app = Flask(__name__, template_folder='templates')
 
-# Yükləmələrin saxlanılacağı qovluğu təyin et
-DOWNLOAD_FOLDER = 'downloads'
-if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+# Qovluq konfiqurasiyası
+# Render fayl sistemi müvəqqəti olduğundan bu qovluq lokal testlər üçün nəzərdə tutulub
+UPLOAD_FOLDER = 'downloads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# ----------------------------------------------------------------------
-# 1. TEMPLATE ROUTING 
-# ----------------------------------------------------------------------
+# --- Routing ---
 
+# Əsas səhifə (index.html)
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# --- YENİ MARŞRUTLAR BURADADIR ---
-
+# Məxfilik Siyasəti səhifəsi
 @app.route('/privacy')
-def privacy_policy():
-    """Məxfilik Siyasəti səhifəsini göstərir."""
-    return render_template('privacy.html')
+def privacy():
+    # Bu faylın mövcudluğunu yoxlayın
+    return render_template('privacy.html') 
 
+# İstifadə Şərtləri səhifəsi
 @app.route('/terms')
-def terms_of_service():
-    """İstifadə Şərtləri səhifəsini göstərir."""
-    return render_template('terms.html')
+def terms():
+    # Bu faylın mövcudluğunu yoxlayın
+    return render_template('terms.html') 
 
-# ----------------------------------------------------------------------
-# 2. YÜKLƏMƏ FUNKSİYASI (FİNAL HƏLL: GET/POST İcazəsi + Sabitlik)
-# ----------------------------------------------------------------------
+# Bloq səhifəsi - sadə placeholder (əgər yaradılıbsa)
+@app.route('/blog')
+def blog():
+    # Bu faylın mövcudluğunu yoxlayın
+    return render_template('blog.html')
 
-@app.route('/yukle', methods=['GET', 'POST']) 
-def yukle():
-    # Fayl yükləməni başlatmaq üçün POST sorğusu
-    if request.method == 'POST':
+# --- API Endpoints ---
+
+@app.route('/api/download', methods=['POST'])
+def download_video():
+    """
+    TikTok linkini qəbul edir və yt-dlp vasitəsilə
+    filiqransız yükləmə linkini qaytarır.
+    """
+    try:
         data = request.get_json()
         url = data.get('url')
-        
+
         if not url:
-            return jsonify({"success": False, "message": "Link daxil edilməyib."}), 400
+            return jsonify({'success': False, 'message': 'Zəhmət olmasa, etibarlı bir link daxil edin.'}), 400
 
-        random_filename = str(uuid.uuid4())
-        filepath = os.path.join(DOWNLOAD_FOLDER, f"{random_filename}.mp4")
-
+        # Yükləmənin deyil, sadəcə məlumatların əldə edilməsi üçün yt-dlp konfiqurasiyası
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-            'outtmpl': filepath,
-            'merge_output_format': 'mp4',
-            'noplaylist': True,
+            # Həqiqi yükləmə əvəzinə məlumatları çıxarmaq
+            'simulate': True, 
+            # Yükləmə prosesini tərk etmək
+            'skip_download': True,
+            # Xəbərdarlıqları gizlətmək
             'no_warnings': True,
-            'skip_download': False,
+            # Konsol çıxışını səssiz etmək
+            'quiet': True,
+            # Ən yaxşı, filiqransız axını seçməyə imkan verən xüsusi TikTok extractor-u işə salır
+            'force_generic_extractor': False,
         }
+        
+        # yt-dlp ilə məlumatları əldə et
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            # yt-dlp ən yaxşı video/audio axınını (adətən filiqransız olanı) tapır
+            info_dict = ydl.extract_info(url, download=False)
+            
+            # Əgər bu bir playlistdirsə, sadəcə ilk elementi götürürük
+            video_info = info_dict['entries'][0] if 'entries' in info_dict and info_dict['entries'] else info_dict
+            
+            # Yükləmə linkini və başlıq tapmaq
+            final_url = None
+            title = video_info.get('title', 'tiktok_video')
 
-        try:
-            logging.info(f"Video yüklənmə sorğusu: {url}")
+            # Ən keyfiyyətli MP4 axınını tapın
+            if 'formats' in video_info:
+                for f in video_info['formats']:
+                    # MP4 formatını və HTTPS protokolunu axtarırıq
+                    if f.get('ext') == 'mp4' and f.get('protocol') in ['https', 'http']:
+                        final_url = f['url']
+                        break
             
-            with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+            if final_url:
+                return jsonify({
+                    'success': True,
+                    # Təhlükəsiz fayl adı yaratmaq
+                    'title': secure_filename(title).replace('_', ' ').strip(), 
+                    'download_url': final_url 
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Uyğun MP4 axını tapılmadı. Video silinmiş ola bilər və ya gizlidir.'}), 404
 
-            logging.info(f"Video uğurla yükləndi: {filepath}")
-            
-            # Uğurlu Halda Yönləndirmə URL-ini göndəririk (JavaScript bunu gözləyir)
-            return jsonify({"success": True, "download_url": request.base_url + "?filename=" + random_filename}), 200
-            
-        except Exception as e:
-            logging.error(f"Server xətası: {e}")
-            return jsonify({
-                "success": False,
-                "message": f"Daxili server xətası baş verdi. {e}"
-            }), 500
-            
-        finally:
-            # Fayl hələlik silinmir, GET müraciətini gözləyir.
-            pass
-
-    # Faylı göndərmək üçün GET sorğusu (window.location.href tərəfindən gəlir)
-    elif request.method == 'GET':
-        filename_uuid = request.args.get('filename')
-        if not filename_uuid:
-             return jsonify({"success": False, "message": "Fayl identifikasiyası tapılmadı."}), 400
-             
-        filepath = os.path.join(DOWNLOAD_FOLDER, f"{filename_uuid}.mp4")
-
-        if not os.path.exists(filepath):
-            return jsonify({"success": False, "message": "Yükləmə faylı artıq silinib və ya tapılmadı."}), 404
-
-        try:
-            file_size = os.path.getsize(filepath)
-            
-            with open(filepath, 'rb') as f:
-                video_data = f.read()
-                
-            response = make_response(video_data)
-            
-            # Başlıqlar: Yükləmə Uğursuz Oldu xətasını həll edir
-            response.headers['Content-Type'] = 'video/mp4'
-            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"' # Sadə fayl adı
-            response.headers['Content-Length'] = file_size
-            
-            if 'Transfer-Encoding' in response.headers:
-                del response.headers['Transfer-Encoding']
-
-            return response
-            
-        except Exception as e:
-             return jsonify({"success": False, "message": f"Fayl ötürülməsi zamanı xəta: {e}"}), 500
-             
-        finally:
-            # Fayl göndərildikdən sonra mütləq silinir
-            if os.path.exists(filepath):
-                os.remove(filepath)
-                logging.info(f"Fayl silindi: {filepath}")
-                
-    return jsonify({"success": False, "message": "Metod keçərsizdir."}), 405
+    except yt_dlp.utils.DownloadError as e:
+        # yt-dlp xətalarını qeyd et
+        app.logger.error(f"yt-dlp Download Error: {e}")
+        return jsonify({'success': False, 'message': 'TikTok linkini emal edərkən xəta baş verdi. Zəhmət olmasa, linkin düzgün olduğundan əmin olun.'}), 500
+        
+    except Exception as e:
+        # Digər gözlənilməz xətalar
+        app.logger.error(f"Gözlənilməz Xəta: {e}")
+        return jsonify({'success': False, 'message': 'Gözlənilməz server xətası baş verdi. Yenidən cəhd edin.'}), 500
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    # host='0.0.0.0' və port=port parametrlərini saxladım
-    app.run(host='0.0.0.0', port=port)
+    # Local inkişaf mühiti üçün. Render Procfile-dan istifadə edəcək.
+    app.run(debug=True, host='0.0.0.0', port=5000)
