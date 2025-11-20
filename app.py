@@ -36,6 +36,9 @@ def terms_of_service():
     """İstifadə Şərtləri səhifəsini göstərir."""
     return render_template('terms.html')
 
+@app.route('/ads.txt')
+def ads_txt():
+    return send_from_directory(app.static_folder, 'ads.txt')
 # ----------------------------------------------------------------------
 # 2. YÜKLƏMƏ FUNKSİYASI (FİNAL HƏLL: GET/POST İcazəsi + Sabitlik)
 # ----------------------------------------------------------------------
