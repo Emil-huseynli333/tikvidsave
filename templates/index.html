@@ -131,6 +131,27 @@
             margin-top: 0;
             margin-bottom: 10px;
         }
+        
+        /* ƏLAVƏ EDİLMİŞ KONTAKT BLOKU ÜÇÜN STİL */
+        .contact-info {
+            margin-top: 30px;
+            padding: 15px;
+            border-top: 1px solid #555577;
+            text-align: center;
+        }
+        
+        .contact-info a {
+            color: #ff5577;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        
+        .contact-info a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+        /* KONTAKT STİLİNİN SONU */
 
         .footer-content {
             text-align: center;
@@ -203,11 +224,20 @@
         
     </section>
 
+    <!-- ❗ KONTAKT BLOKU BAŞLANGICI ❗ -->
+    <div class="contact-info">
+        <h3>Bizimlə Əlaqə</h3>
+        <p>Hər hansı bir sualınız, texniki probleminiz və ya təklifiniz varsa, bizimlə birbaşa əlaqə qura bilərsiniz:</p>
+        <p>Email: <a href="mailto:example@gmail.com?subject=TikTok%20Yükləyici%20Haqqında%20Sual" style="font-size: 1.1em;">example@gmail.com</a></p>
+        <p style="font-size: 0.85em; color: #aaaaaa;">(Email ünvanına toxunun, avtomatik olaraq mesaj göndərmə proqramınız açılacaq.)</p>
+    </div>
+    <!-- KONTAKT BLOKU SONU -->
+
     <footer class="footer-content">
         <p>
             <a href="/privacy" style="color: #ff5577; text-decoration: none;">Məxfilik Siyasəti</a> | 
             <a href="/terms" style="color: #ff5577; text-decoration: none;">İstifadə Şərtləri</a> | 
-            <a href="/blog" style="color: #ff5577; text-decoration: none;">Bloq</a> <!-- ❗ YENİ BLOG LİNKİ ❗ -->
+            <a href="/blog" style="color: #ff5577; text-decoration: none;">Bloq</a>
         </p>
         <p>&copy; 2025 TikTok MP4 Yükləyici. Bütün hüquqlar qorunur.</p>
     </footer>
