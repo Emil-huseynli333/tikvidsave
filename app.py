@@ -1,100 +1,152 @@
+from flask import Flask, render_template, request, jsonify, make_response, send_from_directory
 import os
-import json
+import uuid
 import logging
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from yt_dlp import YoutubeDL, DownloadError
 
-# Logging səviyyəsini tənzimləyir
+# Loglama üçün tənzimləmə
 logging.basicConfig(level=logging.INFO)
 
 # app.py faylının yerləşdiyi qovluğun yolu
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Bu, ads.txt faylının yerini təyin etmək üçün əlavə edildi
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
 
-# Flask tətbiqini inisializasiya edir
+# Flask Tətbiqinin İcrası
 app = Flask(__name__, template_folder='templates')
 
 # Yükləmələrin saxlanılacağı qovluğu təyin et
 DOWNLOAD_FOLDER = 'downloads'
-# Bu qovluq BASE_DIR içində olmalıdır
-DOWNLOAD_PATH = os.path.join(BASE_DIR, DOWNLOAD_FOLDER)
-if not os.path.exists(DOWNLOAD_PATH):
-    os.makedirs(DOWNLOAD_PATH)
+if not os.path.exists(DOWNLOAD_FOLDER):
+    os.makedirs(DOWNLOAD_FOLDER)
 
-# ------------------------------------
-# 1. TEMPLATE ROUTING (HTML SƏHİFƏLƏRİ)
-# ------------------------------------
+# ----------------------------------------------------------------------
+# 1. TEMPLATE ROUTING 
+# ----------------------------------------------------------------------
 
 @app.route('/')
 def index():
-    """Əsas səhifəni yükləyir."""
     return render_template('index.html')
 
-@app.route('/blog.html')
-def blog():
-    """Bloq səhifəsini yükləyir."""
-    return render_template('blog.html')
+# --- YENİ MARŞRUTLAR BURADADIR ---
 
-@app.route('/privacy.html')
-def privacy():
-    """Gizlilik siyasəti səhifəsini yükləyir."""
+@app.route('/privacy')
+def privacy_policy():
+    """Məxfilik Siyasəti səhifəsini göstərir."""
     return render_template('privacy.html')
 
-@app.route('/terms.html')
-def terms():
-    """İstifadə şərtləri səhifəsini yükləyir."""
+@app.route('/terms')
+def terms_of_service():
+    """İstifadə Şərtləri səhifəsini göstərir."""
     return render_template('terms.html')
 
-# ------------------------------------
-# 2. ADS.TXT ROUTING (ADS.TXT FAYLI)
-# ------------------------------------
+# ----------------------------------------------------------------------
+# 2. ADS.TXT ROUTING (YENİ FUNKSİYA)
+# ----------------------------------------------------------------------
 
 @app.route('/ads.txt')
 def serve_ads_txt():
     """
     Google AdSense ads.txt faylını tətbiqin əsas qovluğundan təqdim edir.
+    Bu, 404 xətasının qarşısını alır.
     """
-    # os.getcwd() əvəzinə BASE_DIR istifadə edərək faylın yerini daha dəqiq təyin edirik.
     try:
-        # Faylın adı: 'ads.txt'
         # Faylın yerləşdiyi qovluq: BASE_DIR (app.py-nin yerləşdiyi yer)
         return send_from_directory(BASE_DIR, 'ads.txt')
     except Exception as e:
         app.logger.error(f"Error serving ads.txt: {e}")
-        # Fayl tapılmasa, xəta qaytarılır
+        # Fayl tapılmasa, 404 səhvi qaytarılır
         return "Not Found", 404
 
+# ----------------------------------------------------------------------
+# 3. YÜKLƏMƏ FUNKSİYASI (ORİJİNAL MƏNTİQİNİZ)
+# ----------------------------------------------------------------------
 
-# ------------------------------------
-# 3. DOWNLOAD LOGIC (YÜKLƏMƏ MƏNTİQİ)
-# ------------------------------------
-
-@app.route('/yukle', methods=['POST'])
+@app.route('/yukle', methods=['GET', 'POST']) 
 def yukle():
-    """
-    TikTok linkini alır, videonu yükləyir və yükləmə linkini geri qaytarır.
-    (Məntiq demo kimi saxlanılır.)
-    """
-    try:
+    # Fayl yükləməni başlatmaq üçün POST sorğusu
+    if request.method == 'POST':
         data = request.get_json()
-        video_url = data.get('url')
-
-        if not video_url or 'tiktok.com' not in video_url:
-            return jsonify({'success': False, 'message': 'Keçərli TikTok URL-i daxil edin.'})
+        url = data.get('url')
         
-        # Real yükləmə prosesi (yt-dlp ilə) bu hissədə olmalıdır.
+        if not url:
+            return jsonify({"success": False, "message": "Link daxil edilməyib."}), 400
 
-        # Nümunə yükləmə URL-i (Real tətbiqdə bu dinamik olmalıdır)
-        download_link = "/downloads/test_video.mp4" 
+        random_filename = str(uuid.uuid4())
+        filepath = os.path.join(DOWNLOAD_FOLDER, f"{random_filename}.mp4")
 
-        return jsonify({
-            'success': True, 
-            'message': 'Yükləmə uğurla tamamlandı. Link hazırlanır.', 
-            'download_url': download_link 
-        })
+        ydl_opts = {
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'outtmpl': filepath,
+            'merge_output_format': 'mp4',
+            'noplaylist': True,
+            'no_warnings': True,
+            'skip_download': False,
+        }
 
-    except Exception as e:
-        app.logger.error(f"Yükləmə xətası: {e}")
-        return jsonify({'success': False, 'message': f'Server xətası: {e}'})
+        try:
+            logging.info(f"Video yüklənmə sorğusu: {url}")
+            
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+
+            logging.info(f"Video uğurla yükləndi: {filepath}")
+            
+            # Uğurlu Halda Yönləndirmə URL-ini göndəririk (JavaScript bunu gözləyir)
+            return jsonify({"success": True, "download_url": request.base_url + "?filename=" + random_filename}), 200
+            
+        except Exception as e:
+            logging.error(f"Server xətası: {e}")
+            return jsonify({
+                "success": False,
+                "message": f"Daxili server xətası baş verdi. {e}"
+            }), 500
+            
+        finally:
+            # Fayl hələlik silinmir, GET müraciətini gözləyir.
+            pass
+
+    # Faylı göndərmək üçün GET sorğusu (window.location.href tərəfindən gəlir)
+    elif request.method == 'GET':
+        filename_uuid = request.args.get('filename')
+        if not filename_uuid:
+             return jsonify({"success": False, "message": "Fayl identifikasiyası tapılmadı."}), 400
+             
+        filepath = os.path.join(DOWNLOAD_FOLDER, f"{filename_uuid}.mp4")
+
+        if not os.path.exists(filepath):
+            return jsonify({"success": False, "message": "Yükləmə faylı artıq silinib və ya tapılmadı."}), 404
+
+        try:
+            file_size = os.path.getsize(filepath)
+            
+            with open(filepath, 'rb') as f:
+                video_data = f.read()
+                
+            response = make_response(video_data)
+            
+            # Başlıqlar: Yükləmə Uğursuz Oldu xətasını həll edir
+            response.headers['Content-Type'] = 'video/mp4'
+            response.headers['Content-Disposition'] = 'attachment; filename="video.mp4"' # Sadə fayl adı
+            response.headers['Content-Length'] = file_size
+            
+            if 'Transfer-Encoding' in response.headers:
+                del response.headers['Transfer-Encoding']
+
+            return response
+            
+        except Exception as e:
+             return jsonify({"success": False, "message": f"Fayl ötürülməsi zamanı xəta: {e}"}), 500
+             
+        finally:
+            # Fayl göndərildikdən sonra mütləq silinir
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                logging.info(f"Fayl silindi: {filepath}")
+                
+    return jsonify({"success": False, "message": "Metod keçərsizdir."}), 405
+
 
 if __name__ == '__main__':
-    # Flask tətbiqini işə salır.
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    # host='0.0.0.0' və port=port parametrlərini saxladım
+    app.run(host='0.0.0.0', port=port)
