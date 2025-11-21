@@ -1,286 +1,365 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6DER2XC4BK"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-6DER2XC4BK');
-    </script>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <link rel="icon" href="favicon.png" type="image/png"> 
-    
-    <title>TikTok MP4 Yükləyici</title>
-    
+    <title>TikTok MP4 Yükləyicisi</title>
+    <!-- Tailwind CSS-i yükləyirik -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ************************************ -->
+    <!-- GOOGLE ANALYTICS KODU BURADA YERLƏŞDİRİLİR (Yalnız <head> içində) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6DER2XC4BK"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-6DER2XC4BK'); 
+    </script>
+    <!-- ************************************ -->
+
+
     <style>
+        /* Fərdi stillər */
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start; 
-            min-height: 100vh;
-            background-color: #2c2c3e; /* Tünd arxa fon */
-            color: #f1f1f1;
-            padding-top: 50px;
+            background-color: #1f2937; /* Dark Slate Blue */
+            font-family: 'Inter', sans-serif;
+            color: #f3f4f6; /* Light Gray Text */
         }
-
-        .container {
-            background-color: #3b3b5c;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
-            margin-bottom: 30px; 
+        .container-card {
+            background-color: #374151; /* Darker Gray for Card */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
         }
-
-        h1 {
-            color: #ff5577; 
-            margin-bottom: 30px;
-            font-size: 1.8em;
+        .main-content {
+            background-color: #111827; /* Extra Dark Blue-Gray for main content section */
+            padding: 3rem; /* Daxili boşluq */
         }
-
-        input[type="url"] {
-            width: calc(100% - 20px);
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #555577;
-            border-radius: 5px;
-            background-color: #4a4a6b;
-            color: #f1f1f1;
-            font-size: 1em;
-            box-sizing: border-box;
+        .btn-primary {
+            background-color: #ec4899; /* Pink */
+            transition: background-color 0.3s;
         }
-
-        button {
-            background-color: #ff5577;
-            color: white;
-            padding: 15px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-            width: 100%;
+        .btn-primary:hover {
+            background-color: #db2777; /* Darker Pink */
         }
-
-        button:hover {
-            background-color: #e54d6a;
+        .input-style {
+            background-color: #1f2937; /* Darker background for input */
+            color: #f3f4f6;
         }
-
+        /* Status Mesajı üçün əlavə stil */
         #status-message {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            font-weight: bold;
             display: none;
-            animation: fadeIn 0.5s;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: 500;
         }
-
-        /* DƏYİŞDİRİLMİŞ STATUS RƏNGLƏRİ */
-        .loading { background-color: #4a4a6b; color: #ffeb3b; } 
-        .success { background-color: #4caf4f00; color: #ffffff; } 
-        .error { background-color: #f44336; color: #ffffff; }
-        
-        /* ------------------------------------------------ */
-        /* YENİ MƏZMUN BLOKLARININ CSS STILLƏRİ */
-        /* ------------------------------------------------ */
-        
-        .content-container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            color: #f1f1f1;
-            background: #2a2a47; 
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            text-align: left;
-        }
-
-        .info-section h1, .info-section h2, .faq-section h2 {
-            color: #ffffff;
-            margin-top: 30px;
-            border-bottom: 2px solid #555577;
-            padding-bottom: 5px;
-        }
-
-        .info-section ul {
-            list-style: disc;
-            margin-left: 20px;
-            padding: 10px 0;
-            line-height: 1.6;
-        }
-
-        .faq-item {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #4a4a6b;
-            border-radius: 5px;
-            background: #333355;
-        }
-
-        .faq-item h3 {
-            color: #ff5577; 
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-
-        .footer-content {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 15px;
-            border-top: 1px solid #4a4a6b;
-            color: #aaaaaa;
-            font-size: 0.9em;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-    /* Yeni Reklam Divi Stili (Orta hissədə görünməsi üçün) */
+        /* Reklam Banneri üçün konteyner stili */
         .ad-container {
+            margin: 20px auto; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #111827; 
+            border-radius: 8px;
+            overflow: hidden; 
+        }
+
+        /* Reklam Mesajı Modalı (Yeni Əlavə) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 728px; /* Reklamın genişliyinə uyğun */
-            margin: 0 auto 30px auto; /* Üst hissəyə və mərkəzə gətirir */
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75); /* Tünd, şəffaf arxa fon */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50; /* Bütün elementlərin üzərində olsun */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #374151; /* Kart rəngi */
+            color: #f3f4f6;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+            width: 400px;
             text-align: center;
-            padding: 10px 0;
-        }</style>
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.open .modal-content {
+            transform: scale(1);
+        }
+        .modal-close-btn {
+            background-color: #ec4899;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-top: 15px;
+        }
+        .modal-close-btn:hover {
+            background-color: #db2777;
+        }
+
+        /* Responsive dizayn üçün */
+        @media (max-width: 768px) {
+            .ad-container {
+                max-width: 468px;
+                height: 60px; 
+            }
+        }
+    </style>
+    <!-- Font Awesome Ikonları üçün -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
-<body>
-
-    <div style="height: 50px;"></div>
-
-    <div class="ad-container">
-        <script type="text/javascript">
-            atOptions = {
-                'key' : 'f8e38ed37fb3a23c3e347f9aba142d97',
-                'format' : 'iframe',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-            };
-        </script>
-        <script type="text/javascript" src="//www.highperformanceformat.com/f8e38ed37fb3a23c3e347f9aba142d97/invoke.js"></script>
+<body class="min-h-screen flex flex-col items-center py-10">
+    
+    <!-- ************************************ -->
+    <!-- REKLAM HAQQINDA MƏLUMAT MODALI (Yeni Əlavə) -->
+    <!-- ************************************ -->
+    <div id="ad-disclaimer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-yellow-400 mb-4">Mühüm Bildiriş ⚠️</h3>
+            <p class="text-base mb-6">
+                Saytda yerləşdirilən reklamlar bizim tərəfimizdən deyil, reklamverən şəbəkə (<span class="font-bold text-pink-400">Adsterra</span>) tərəfindən təyin olunur. 
+                <br><br>
+                Bu reklamların məzmunu ilə <span class="font-bold">birbaşa əlaqəmiz yoxdur</span> və onlara görə məsuliyyət daşımırıq.
+            </p>
+            <button id="close-modal-btn" class="modal-close-btn">Bağla və Davam et</button>
+        </div>
     </div>
-        <div class="container">
-        <h1><i class="fas fa-magic"></i> TikTok MP4 Yükləyici</h1>
+    <!-- ************************************ -->
+
+
+    <!-- ************************************ -->
+    <!-- 1. REKLAM YERİ (728x90) - BODY-də görünən banner üçün (YÜKDƏ) -->
+    <!-- ************************************ -->
+    <div class="ad-container max-w-full md:w-[728px] md:h-[90px] w-full h-[100px] mb-8">
+        <!-- Adsterra Reklam Kodu Buradan Başlayır -->
+        <script type="text/javascript">
+            atOptions = {
+                'key' : 'f8e38ed37fb3a23c3e347f9aba142d97',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/f8e38ed37fb3a23c3e347f9aba142d97/invoke.js"></script>
+        <!-- Adsterra Reklam Kodu Burada Bitir -->
+    </div>
+    <!-- ************************************ -->
+
+    <!-- Əsas Yükləmə Kartı -->
+    <div class="container-card w-11/12 md:w-1/2 lg:w-1/3 p-6 rounded-xl text-center mb-10">
+        <h1 class="text-3xl font-bold mb-6 text-[#ff5577] flex items-center justify-center">
+            <i class="fas fa-magic" style="margin-right: 10px;"></i> TikTok MP4 Yükləyicisi
+        </h1>
         
         <form id="download-form">
-            <input type="url" id="tiktok-url" placeholder="TikTok linkini bura yapışdırın" required>
-            <button type="submit">Yüklə və MP4 əldə et</button>
+            <input type="url" id="tiktok-url" placeholder="TikTok linkini bura yapışdırın" 
+                   class="input-style w-full p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-500 mb-4" 
+                   required>
+            
+            <button type="submit" id="downloadBtn" class="btn-primary w-full p-3 rounded-lg font-semibold flex items-center justify-center">
+                Yüklə və MP4 əldə et
+            </button>
         </form>
 
-        <div id="status-message" class="error" style="display: none;"></div>
+        <!-- Yükləmə Statusu Mesajı -->
+        <p id="status-message" class="mt-4 text-sm font-medium"></p>
     </div>
-    
-<div class="content-container">
 
-    <section class="info-section">
-        <h1>✨ TikTok MP4 Yükləyicisi ilə Tanış Olun</h1>
-        <p>
-            Sizə ən sevdiyiniz TikTok videolarını filiqransız (Watermark olmadan) və yüksək keyfiyyətdə MP4 formatında yükləməyə kömək edirik. Proses çox sadədir: linki yapışdırın və yükləyin. 
-            Bizim alətimiz istifadəçilərin ən yaxşı təcrübəni qazanması üçün hazırlanmışdır.
-        </p>
+    <!-- Məhsul Haqqında Məlumat Bloku (Bərpa Edilmiş Məzmun) -->
+    <div class="main-content w-11/12 md:w-3/4 lg:w-2/3 p-6 rounded-xl mb-10">
+        
+        <!-- Bütün alt məzmunu mərkəzləşdirmək üçün 'text-center' əlavə edildi -->
+        <div class="text-center"> 
+            <h2 class="text-3xl font-bold text-yellow-400 mb-4">
+                ✨ TikTok MP4 Yükləyicisi ilə Tanış Olun
+            </h2>
+            <p class="text-base text-gray-300 mb-8 max-w-3xl mx-auto">
+                Sizə ən sevdiyiniz TikTok videolarını filiqransız (Watermark olmadan) və yüksək keyfiyyətdə MP4 formatında yükləməyə kömək edirik. Bizim əlimizdəki texnologiyamız videonun serverdə emal zamanı platformanın qoyduğu məntiqi çıxarır. Məqsədimiz istifadəçilərin ən yaxşı təcrübəni qazanması üçün bütün lazımi məlumatları təqdim etməkdir.
+            </p>
+        </div>
 
-        <h2>Niyə Bizi Seçməlisiniz?</h2>
-        <ul>
-            <li>Filigransız Yükləmə: TikTok-un loqosu olmadan təmiz videolar əldə edin.</li>
-            <li>Yüksək Keyfiyyət: Videoları orijinal keyfiyyətdə MP4 formatında saxlayın.</li>
-            <li>Pulsuz və Limitsiz: Heç bir qeydiyyat tələb olunmur və istədiyiniz qədər yükləyə bilərsiniz.</li>
-            <li>Çoxplatformalı Dəstək: Bütün cihazlarda (Android, iOS, PC) işləyir.</li>
+        <!-- Niyə Bizi Seçməlisiniz? Bölməsi -->
+        <h3 class="text-xl font-semibold text-pink-400 mb-4 mt-6 text-center">Niyə Bizi Seçməlisiniz?</h3>
+        <ul class="text-gray-300 list-disc list-inside space-y-2 max-w-3xl mx-auto text-left">
+            <li><span class="font-bold text-yellow-300">Filiqransız Yükləmə:</span> TikTok-un loqosu olmadan təmiz videolar əldə edin.</li>
+            <li><span class="font-bold text-yellow-300">Yüksək Keyfiyyət:</span> Videoları orijinal keyfiyyətdə MP4 formatında saxlayın.</li>
+            <li><span class="font-bold text-yellow-300">Pulsuz və Limitsiz:</span> Heç bir qeydiyyat tələb olunmur və istədiyiniz qədər yükləyə bilərsiniz.</li>
+            <li><span class="font-bold text-yellow-300">Çoxplatformalı Dəstək:</span> Bütün cihazlarda (Android, iOS, PC) işləyir.</li>
         </ul>
-    </section>
 
-    <section class="faq-section">
-        <h2>❓ Tez-tez Verilən Suallar (FAQ)</h2>
+        <!-- Tez-tez Verilən Suallar (FAQ) Bölməsi -->
+        <h3 class="text-xl font-semibold text-pink-400 mb-4 mt-10 text-center">
+            ❓ Tez-tez Verilən Suallar (FAQ)
+        </h3>
         
-        <div class="faq-item">
-            <h3>TikTok videosunu necə yükləyə bilərəm?</h3>
-            <p>Çox asandır! TikTok tətbiqindəki "Paylaş" düyməsinə toxunun, "Link kopyala" seçin və kopyaladığınız linki yuxarıdakı giriş qutusuna yapışdırıb "Yüklə" düyməsini basın.</p>
+        <!-- Sual 1 -->
+        <div class="max-w-3xl mx-auto text-left mb-6">
+            <h4 class="font-bold text-gray-200 mb-2">TikTok videosunu necə yükləyə bilərəm?</h4>
+            <p class="text-gray-400 text-sm">
+                Çox asandır! TikTok tətbiqindəki "Paylaş" düyməsinə basın, "Link kopyala" seçin və kopyaladığınız linki yuxarıdakı giriş qutusuna yapışdırıb "Yüklə" düyməsini basın. Proses cəmi saniyələr çəkir!
+            </p>
+        </div>
+        
+        <!-- Sual 2 -->
+        <div class="max-w-3xl mx-auto text-left mb-6">
+            <h4 class="font-bold text-gray-200 mb-2">Filiqransız yükləmək mümkündürmü?</h4>
+            <p class="text-gray-400 text-sm">
+                Bəli, bizim xidmətimizlə yüksək keyfiyyətli, TikTok loqosu olmadan təmiz, orijinal keyfiyyətdə videolar əldə edə bilərsiniz.
+            </p>
+        </div>
+        
+        <!-- Sual 3 (Yeni Sual) -->
+        <div class="max-w-3xl mx-auto text-left mb-6">
+            <h4 class="font-bold text-gray-200 mb-2">Yüklədiyim videoları kommersiya məqsədləri üçün istifadə edə bilərəmmi?</h4>
+            <p class="text-gray-400 text-sm">
+                Xeyr, lütfən diqqətli olun. Biz yalnız şəxsi və qeyri-kommersiya məqsədləri üçün yükləməyə icazə veririk. Yüklənmiş videonun kommersiya məqsədləri üçün istifadəsi yalnız video sahibinin icazəsi ilə mümkündür. İstifadə şərtlərini oxuyun.
+            </p>
         </div>
 
-        <div class="faq-item">
-            <h3>Filigransız yükləmək mümkündürmü?</h3>
-            <p>Bəli, bizim xidmətimizdə yüklədiyiniz bütün videolar TikTok loqosu olmadan təmiz, orijinal keyfiyyətdə olur.</p>
+        <!-- Əlaqə Bölməsi -->
+        <div class="max-w-3xl mx-auto text-center mt-10 p-4 border-t border-gray-700">
+            <h3 class="text-xl font-semibold text-pink-400 mb-2">Bizimlə Əlaqə</h3>
+            <p class="text-gray-300 mb-2">Hər hansı bir sualınız, texniki probleminiz və ya təklifiniz varsa, bizimlə əlaqə qura bilərsiniz:</p>
+            <p class="text-gray-300 font-bold">Email: <a href="mailto:ttvideoyukleme.online@gmail.com" class="text-blue-400 hover:text-blue-300">ttvideoyukleme.online@gmail.com</a></p>
         </div>
         
-    </section>
+    </div>
 
-    <footer class="footer-content">
+    <!-- ************************************ -->
+    <!-- 2. REKLAM YERİ (728x90) - Altda təkrar -->
+    <!-- ************************************ -->
+    <div class="ad-container max-w-full md:w-[728px] md:h-[90px] w-full h-[100px] mt-8">
+        <!-- Adsterra Reklam Kodu Buradan Başlayır -->
+        <script type="text/javascript">
+            atOptions = {
+                'key' : 'f8e38ed37fb3a23c3e347f9aba142d97',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/f8e38ed37fb3a23c3e347f9aba142d97/invoke.js"></script>
+        <!-- Adsterra Reklam Kodu Burada Bitir -->
+    </div>
+    <!-- ************************************ -->
+
+
+    <!-- Footer -->
+    <footer class="text-center text-gray-500 text-sm mt-10">
+        <p class="mb-2">© 2025 TikTok MP4 Yükləyicisi. Bütün hüquqlar qorunur.</p>
         <p>
-            <a href="/privacy" style="color: #ff5577; text-decoration: none;">Məxfilik Siyasəti</a> | 
-            <a href="/terms" style="color: #ff5577; text-decoration: none;">İstifadə Şərtləri</a>
+            <a href="/privacy" class="text-blue-400 hover:text-blue-300 mx-2">Məxfilik Siyasəti</a> | 
+            <a href="/terms" class="text-blue-400 hover:text-blue-300 mx-2">İstifadə Şərtləri</a> |
+            <a href="/ads.txt" class="text-blue-400 hover:text-blue-300 mx-2" target="_blank">ads.txt</a>
         </p>
-        <p>&copy; 2025 TikTok MP4 Yükləyici. Bütün hüquqlar qorunur.</p>
     </footer>
-    
-</div>
-<script>
-        document.getElementById('download-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const url = document.getElementById('tiktok-url').value;
-            
-            updateStatus('Yükləmə hazırlanır, zəhmət olmasa gözləyin...', 'loading'); 
 
-            fetch('/yukle', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ url: url })
-            })
-            .then(response => {
-                if (response.status === 404) {
-                    return response.json().then(data => {
-                        throw new Error(data.message || 'Video linki tapılmadı.');
+    <!-- JavaScript Məntiqi -->
+    <script>
+        // DOM yüklənən kimi hadisə dinləyicisini əlavə et
+        document.addEventListener('DOMContentLoaded', () => {
+            const downloadForm = document.getElementById('download-form');
+            const urlInput = document.getElementById('tiktok-url');
+            const statusMessage = document.getElementById('status-message');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            // Modal Elementləri
+            const modal = document.getElementById('ad-disclaimer-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const modalShownKey = 'adsterra-disclaimer-shown';
+
+            // Modal Funksionallığı
+            if (localStorage.getItem(modalShownKey) !== 'true') {
+                // Modal sadəcə bir dəfə göstərilir
+                modal.classList.add('open');
+            }
+
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.remove('open');
+                // Növbəti dəfə göstərilməməsi üçün localStorage-da yadda saxla
+                localStorage.setItem(modalShownKey, 'true');
+            });
+            
+            // Yükləmə Funksionallığı (Əvvəlki Kodu Bərpa Edildi)
+
+            // Müraciət formunun təqdim edilməsi hadisəsi
+            downloadForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // Səhifənin yenilənməsinin qarşısını al
+
+                const url = urlInput.value.trim();
+
+                if (!url) {
+                    statusMessage.textContent = "❌ Zəhmət olmasa, TikTok linkini daxil edin.";
+                    statusMessage.style.backgroundColor = '#fee2e2'; // Red background
+                    statusMessage.style.color = '#dc2626'; // Red text
+                    statusMessage.style.display = 'block';
+                    return;
+                }
+
+                statusMessage.textContent = "⏳ Yüklənmə hazırlanır, zəhmət olmasa gözləyin...";
+                statusMessage.style.backgroundColor = '#fef3c7'; // Yellow background
+                statusMessage.style.color = '#d97706'; // Yellow text
+                statusMessage.style.display = 'block';
+                downloadBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/yukle', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: url })
                     });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Yükləməni başlatmaq üçün yönləndirmə
+                        statusMessage.textContent = "✅ Yüklənmə tamamlandı. Başqa link daxil edin.";
+                        statusMessage.style.backgroundColor = '#d1fae5'; // Green background
+                        statusMessage.style.color = '#059669'; // Green text
+                        
+                        // Yönləndirməyə 1 saniyəlik gecikmə
+                        setTimeout(() => {
+                            window.location.href = result.download_url;
+                            downloadBtn.disabled = false;
+                        }, 1000); 
+                        
+                    } else {
+                        statusMessage.textContent = `❌ Xəta: ${result.message || 'Bilinməyən xəta baş verdi.'}`;
+                        statusMessage.style.backgroundColor = '#fee2e2';
+                        statusMessage.style.color = '#dc2626';
+                        downloadBtn.disabled = false;
+                    }
+
+                } catch (error) {
+                    console.error('Yükləmə xətası:', error);
+                    statusMessage.textContent = "❌ Serverlə əlaqə qurularkən xəta baş verdi.";
+                    statusMessage.style.backgroundColor = '#fee2e2';
+                    statusMessage.style.color = '#dc2626';
+                    downloadBtn.disabled = false;
                 }
-                if (!response.ok) {
-                    throw new Error('Server Xətası: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.download_url) {
-                    // Yükləməni başlat
-                    const link = document.createElement('a');
-                    link.href = data.download_url;
-                    link.target = '_blank'; 
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    updateStatus('Yüklənmə tamamlandı. Başqa link daxil edin.', 'success'); 
-                } else {
-                    throw new Error(data.message || 'Gözlənilməz xəta baş verdi.');
-                }
-            })
-            .catch(error => {
-                updateStatus(error.message, 'error'); 
-                console.error('Error:', error);
             });
         });
-
-        function updateStatus(message, type) {
-            const statusDiv = document.getElementById('status-message');
-            statusDiv.className = type;
-            statusDiv.innerHTML = message; 
-
-            statusDiv.style.display = 'block';
-        }
     </script>
-
 </body>
 </html>
