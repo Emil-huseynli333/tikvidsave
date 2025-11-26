@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="az">
 <head>
@@ -18,16 +19,7 @@
     </script>
     <!-- ************************************ -->
 
-    <!-- ****************************************************** -->
-    <!-- YENİ ƏLAVƏ: PWA Manifest Linki VƏ Apple Teqləri -->
-    <!-- Tətbiqin adı "TikTok Yükləyici PWA" olaraq təyin edildi. -->
-    <!-- ****************************************************** -->
-    <link rel="manifest" href="data:application/json;base64,eyJpY29ucyI6IFt7InNyYyI6ICJodHRwczovL3BsYWNlaG9sZC5jby8xOTJ4MTkyL2VjNDg5OS9mZmYifSwgeyJzcmMiOiAiaHR0cHM6Ly9wbGFjZWhvbGQuY28vNTEyeDUxMi9lYzQ4OTkvZmZmIn1dLCAibmFtZSI6ICJUaWtUb2sgWcO8a2zZc2ljaSBBcHAiLCAic2hvcnRfbmFtZSI6ICJUaWtUb2sgUFdBIiwgInN0YXJ0X3VybCI6ICIvIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIgLCAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWYyOTM3IiwgInRoZW1lX2NvbG9yIjogIiNlYzQ4OTkiIH0=">
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <link rel="apple-touch-icon" href="https://placehold.co/192x192/ec4899/fff">
-    
     <style>
         /* Fərdi stillər */
         body {
@@ -73,7 +65,7 @@
             overflow: hidden; 
         }
 
-        /* Reklam Mesajı Modalı */
+        /* Reklam Mesajı Modalı (Yeni Əlavə) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -133,35 +125,11 @@
     </style>
     <!-- Font Awesome Ikonları üçün -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-
-    <!-- ****************************************************** -->
-    <!-- YENİ ƏLAVƏ: Service Worker Kodu (Inline CSS İçində) -->
-    <!-- ****************************************************** -->
-    <script>
-        const serviceWorkerCode = `
-            self.addEventListener('install', (event) => {
-                console.log('Service Worker quraşdırılır...');
-                self.skipWaiting(); /* Dərhal aktivləşdir */
-            });
-
-            self.addEventListener('activate', (event) => {
-                console.log('Service Worker aktivləşdirildi!');
-            });
-            
-            self.addEventListener('fetch', (event) => {
-                // Oflayn məzmun üçün keşləmə (caching) məntiqi bura əlavə edilə bilər.
-            });
-        `;
-        
-        // Service Worker-i qeydiyyatdan keçirmək üçün Blob (və URL) yaradılır.
-        const swBlob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(swBlob);
-    </script>
 </head>
 <body class="min-h-screen flex flex-col items-center py-10">
     
     <!-- ************************************ -->
-    <!-- REKLAM HAQQINDA MƏLUMAT MODALI -->
+    <!-- REKLAM HAQQINDA MƏLUMAT MODALI (Yeni Əlavə) -->
     <!-- ************************************ -->
     <div id="ad-disclaimer-modal" class="modal-overlay">
         <div class="modal-content">
@@ -178,7 +146,7 @@
 
 
     <!-- ************************************ -->
-    <!-- 1. REKLAM YERİ (728x90) -->
+    <!-- 1. REKLAM YERİ (728x90) - BODY-də görünən banner üçün (YÜKDƏ) -->
     <!-- ************************************ -->
     <div class="ad-container max-w-full md:w-[728px] md:h-[90px] w-full h-[100px] mb-8">
         <!-- Adsterra Reklam Kodu Buradan Başlayır -->
@@ -211,18 +179,6 @@
                 Yüklə və MP4 əldə et
             </button>
         </form>
-
-        <!-- ****************************************************** -->
-        <!-- YENİ ƏLAVƏ: PWA Quraşdırma Düyməsi -->
-        <!-- ****************************************************** -->
-        <button id="installButton"
-            class="hidden mt-4 w-full py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-lg transition duration-200"
-            role="button"
-            aria-label="Tətbiqi Quraşdırın">
-            Tətbiqi Quraşdırın 📲
-        </button>
-        <p id="pwa-status-message" class="mt-2 text-xs text-gray-400 font-medium"></p>
-        <!-- ****************************************************** -->
 
         <!-- Yükləmə Statusu Mesajı -->
         <p id="status-message" class="mt-4 text-sm font-medium"></p>
@@ -319,75 +275,7 @@
 
     <!-- JavaScript Məntiqi -->
     <script>
-        // ******************************************************
-        // PWA DƏYİŞƏNLƏRİ VƏ FUNKSİONALLIĞI
-        // ******************************************************
-        let deferredPrompt;
-        const installButton = document.getElementById('installButton');
-        const pwaStatusMessage = document.getElementById('pwa-status-message');
-
-        // 1. Service Worker-in Qeydiyyatı (swUrl yuxarıda, style blokunda yaradılıb)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register(swUrl)
-                    .then(() => {
-                        console.log('SW Uğurla Qeydiyyatdan Keçdi.');
-                        pwaStatusMessage.textContent = 'Tətbiq kimi quraşdırma dəstəklənir.';
-                    })
-                    .catch(err => {
-                        console.error('SW Qeydiyyatı Uğursuz Oldu:', err);
-                        pwaStatusMessage.textContent = 'SW qeydiyyat xətası.';
-                    });
-            });
-        } else {
-            pwaStatusMessage.textContent = 'Brauzer PWA-nı dəstəkləmir.';
-        }
-
-        // 2. beforeinstallprompt Hadisəsini Tutmaq
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Brauzerin defolt bildirişini dayandır
-            e.preventDefault();
-            
-            // Hadisəni saxla
-            deferredPrompt = e;
-            
-            // Custom (özümüzün) düyməsini görünən et
-            installButton.classList.remove('hidden');
-            pwaStatusMessage.textContent = 'Ana ekrana əlavə etmək üçün yuxarıdakı düyməyə basın.';
-            console.log('beforeinstallprompt hadisəsi tutuldu.');
-
-            // Düymə klikləndikdə quraşdırma dialoqunu göstər
-            installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    installButton.classList.add('hidden');
-                    pwaStatusMessage.textContent = 'Quraşdırma prosesi başlayır...';
-                    
-                    deferredPrompt.prompt();
-                    
-                    const { outcome } = await deferredPrompt.userChoice;
-                    
-                    if (outcome === 'accepted') {
-                        pwaStatusMessage.innerHTML = '<span class="text-green-400 font-bold">Quraşdırma qəbul edildi!</span>';
-                    } else {
-                        pwaStatusMessage.innerHTML = 'Quraşdırma ləğv edildi. Yenidən cəhd edə bilərsiniz.';
-                        installButton.classList.remove('hidden'); // Ləğv olunarsa düyməni yenidən göstər
-                    }
-                    
-                    deferredPrompt = null;
-                }
-            });
-        });
-
-        // 3. Tətbiq Quraşdırıldıqdan Sonra
-        window.addEventListener('appinstalled', () => {
-            installButton.classList.add('hidden');
-            pwaStatusMessage.innerHTML = '<span class="text-yellow-400 font-bold">Tətbiq artıq quraşdırılıb!</span>';
-            console.log('PWA quraşdırıldı.');
-        });
-        
-        // ******************************************************
-        // ƏSAS YÜKLƏMƏ VƏ MODAL MƏNTİQİ
-        // ******************************************************
+        // DOM yüklənən kimi hadisə dinləyicisini əlavə et
         document.addEventListener('DOMContentLoaded', () => {
             const downloadForm = document.getElementById('download-form');
             const urlInput = document.getElementById('tiktok-url');
@@ -400,19 +288,18 @@
             const modalShownKey = 'adsterra-disclaimer-shown';
 
             // Modal Funksionallığı
-            // Firebase olmadığı üçün localStorage istifadə edilir
-            if (typeof localStorage !== 'undefined' && localStorage.getItem(modalShownKey) !== 'true') {
+            if (localStorage.getItem(modalShownKey) !== 'true') {
+                // Modal sadəcə bir dəfə göstərilir
                 modal.classList.add('open');
             }
 
             closeModalBtn.addEventListener('click', () => {
                 modal.classList.remove('open');
-                if (typeof localStorage !== 'undefined') {
-                    localStorage.setItem(modalShownKey, 'true');
-                }
+                // Növbəti dəfə göstərilməməsi üçün localStorage-da yadda saxla
+                localStorage.setItem(modalShownKey, 'true');
             });
             
-            // Yükləmə Funksionallığı
+            // Yükləmə Funksionallığı (Əvvəlki Kodu Bərpa Edildi)
 
             // Müraciət formunun təqdim edilməsi hadisəsi
             downloadForm.addEventListener('submit', async (e) => {
@@ -435,8 +322,7 @@
                 downloadBtn.disabled = true;
 
                 try {
-                    // Qeyd: Bu fetch çağırışı Back-end API-nizə yönəldir.
-                    const response = await fetch('/yukle', { 
+                    const response = await fetch('/yukle', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -446,7 +332,7 @@
 
                     const result = await response.json();
 
-                    if (response.ok && result.success) {
+                    if (result.success) {
                         // Yükləməni başlatmaq üçün yönləndirmə
                         statusMessage.textContent = "✅ Yüklənmə tamamlandı. Başqa link daxil edin.";
                         statusMessage.style.backgroundColor = '#d1fae5'; // Green background
